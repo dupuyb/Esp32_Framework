@@ -1,4 +1,5 @@
 #include <Arduino.h>
+//#define DEBUG_FRAME
 #include "Frame.h"
 
 #define EspLedBlue 2
@@ -33,7 +34,7 @@ void setup() {
   Serial.begin(115200);
   // Set pin mode
   pinMode(EspLedBlue, OUTPUT);     // Led is BLUE at statup
-  digitalWrite(EspLedBlue, HIGH);  // After 5 seconds blinking indicate WiFI ids OK
+  digitalWrite(EspLedBlue, HIGH);  // After 5 seconds blinking indicate WiFI is OK
   delay(5000);                     // If stay BLUE after 5 sec mode AccessPoint
   // Start framework
   frame_setup();

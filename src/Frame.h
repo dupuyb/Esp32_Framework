@@ -21,6 +21,16 @@
 // mDNS
 #include "ESPmDNS.h"
 
+// Debug macro
+//#define DEBUG_FRAME
+#ifdef DEBUG_FRAME
+  #define DBX(...) Serial.print(__VA_ARGS__)
+  #define DBXLN(...) Serial.println(__VA_ARGS__)
+#else
+  #define DBX(...)
+  #define DBXLN(...)
+#endif
+
 // constant HTML Uploader if not defined in FS
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32Dudu</title><meta content='width=device-width' name='viewport'></head>";
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style=\"background-color:lightblue\">HTML Uploader</h1></header><div><p style=\"text-align: center\">Use this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p><form method=\"post\" enctype=\"multipart/form-data\" style=\"margin: 0px auto 8px auto\" ><input type=\"file\" name=\"Choose file\" accept=\".gz,.html,.ico,.js,.css,.png,.gif,.jpg,.xml,.pdf,.htm\"><input class=\"button\" type=\"submit\" value=\"Upload\" name=\"submit\"></form></div></center></body></html>";
@@ -142,22 +152,22 @@ String saveConfiguration(const char *filename, const Config &config) {
 // Start SPIFFS & Read config file
 void startSPIFFS() {
   if (SPIFFS.begin()==false){
-    Serial.println(F("SPIFFS was not formatted."));
+    DBXLN(F("SPIFFS was not formatted."));
     SPIFFS.format();
     SPIFFS.begin();
   }
   String ls;
   listDir(ls, SPIFFS, "/", 0);
-  Serial.print(ls);
+  DBX(ls);
 }
 void loadConfiguration(const char *filename, Config &config) {
   // Open file for reading configuration
   File file = SPIFFS.open(filename, "r");
   if (!file)
-    Serial.println(F(" Config file is absent."));
+    DBXLN(F(" Config file is absent."));
   size_t size = file.size();
   if (size > 1024)
-    Serial.println(F(" Fichier config trop grand."));
+    DBXLN(F(" Fichier config trop grand."));
   // allocate buffer for loading config
   std::unique_ptr<char[]> buf(new char[size]);
   file.readBytes(buf.get(), size);
@@ -176,27 +186,30 @@ void loadConfiguration(const char *filename, Config &config) {
   strlcpy(config.UploadPassword, rootcfg["UploadPassword"] | "admin",sizeof(config.UploadPassword));
   config.UseToolsLocal = rootcfg["UseToolsLocal"] | true;
   if (!rootcfg.success()) {
-    Serial.println(F("Erreur lecture fichier config."));
+    DBXLN(F("Erreur lecture fichier config."));
     String ret = saveConfiguration(filename, config);
-    Serial.println(ret);
+    DBXLN(ret);
   }
 }
 
 //  configModeCallback callback when entering into AP mode
 void configModeCallback (WiFiManager *myWiFiManager) {
-  Serial.println(F("Choisir AP.."));
+  DBXLN(F("Choisir AP.."));
   delay(3000);
-  Serial.println(WiFi.softAPIP().toString());
+  DBXLN(WiFi.softAPIP().toString());
   delay(3000);
-  Serial.println(myWiFiManager->getConfigPortalSSID());
-  Serial.println(WiFi.softAPIP());
+  DBXLN(myWiFiManager->getConfigPortalSSID());
+  DBXLN(WiFi.softAPIP());
   //if you used auto generated SSID, print it
-  Serial.println(myWiFiManager->getConfigPortalSSID());
+  DBXLN(myWiFiManager->getConfigPortalSSID());
 }
 
 // Start WiFiManager
 void startWifiManager() {
   WiFiManager wifiManager;
+#ifndef DEBUG_FRAME
+  wifiManager.setDebugOutput(false);
+#endif
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
   // wifiManager.setAPStaticIPConfig(IPAddress(192,168,0,1), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
   //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
@@ -207,9 +220,9 @@ void startWifiManager() {
   //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
   wifiManager.autoConnect(config.HostName);
   // Wait for connection
-  Serial.println(F("Wait wifi."));
+  DBXLN(F("Wait wifi."));
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500); Serial.print(".");
+    delay(500); DBX(".");
   }
 }
 
@@ -253,7 +266,7 @@ String simpleFirmware(){
 
 // Handle Web server
 bool handleFileRead(String path) {                         // send the right file to the client (if it exists)
-  Serial.println("handleFileRead: " + path);
+  DBXLN("handleFileRead: " + path);
   if (path.endsWith("/")) path += "index.html";            // If a folder is requested, send the index file
   String contentType = getContentType(path);               // Get the MIME type
   String pathWithGz = path + ".gz";
@@ -263,7 +276,7 @@ bool handleFileRead(String path) {                         // send the right fil
     File file = SPIFFS.open(path, "r");                    // Open the file
     server.streamFile(file, contentType);                  // Send it to the client
     file.close();                                          // Close the file again
-    Serial.println("\tSent file: " + path);
+    DBXLN("\tSent file: " + path);
     return true;
   } else {
     if (config.UseToolsLocal) {
@@ -286,7 +299,7 @@ bool handleFileRead(String path) {                         // send the right fil
       }
     }
   }
-  Serial.println("\tFile Not Found: " + path);             // If the file doesn't exist, return false
+  DBXLN("\tFile Not Found: " + path);             // If the file doesn't exist, return false
   return false;
 }
 
@@ -301,8 +314,8 @@ void handleFileUpload(){                                // upload a new file to 
       if(SPIFFS.exists(pathWithGz))                      // version of that file must be deleted (if it exists)
          SPIFFS.remove(pathWithGz);
     }
-    Serial.print(F("handleFileUpload Name: "));
-    Serial.println(path);
+    DBX(F("handleFileUpload Name: "));
+    DBXLN(path);
     fsUploadFile = SPIFFS.open(path, "w");                // Open the file for writing in SPIFFS (create if it doesn't exist)
     path = String();
   } else if(upload.status == UPLOAD_FILE_WRITE){
@@ -311,8 +324,8 @@ void handleFileUpload(){                                // upload a new file to 
   } else if(upload.status == UPLOAD_FILE_END){
     if(fsUploadFile) {                                    // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
-      Serial.print(F("handleFileUpload Size: "));
-      Serial.println(upload.totalSize);
+      DBX(F("handleFileUpload Size: "));
+      DBXLN(upload.totalSize);
       server.sendHeader("Location","/success.html");      // Redirect the client to the success page
       server.send(303);
     } else {
@@ -418,8 +431,8 @@ void startMDNS() {
   // - first argument is the domain name, in this example   the fully-qualified domain name is "esp8266.local"
   // - second argument is the IP address to advertise   we send our IP address on the WiFi network
   if (!MDNS.begin(config.HostName))
-    Serial.println(F("Error setting up MDNS responder!"));
-  Serial.print( F("mDNS responder started: ")); Serial.println(config.HostName);
+    DBXLN(F("Error setting up MDNS responder!"));
+  DBX( F("mDNS responder started: ")); DBXLN(config.HostName);
   MDNS.addService("http",  "tcp", 80);
   MDNS.addService("ws",    "tcp", 81);
   MDNS.addService("esp32", "tcp", 8888); // Announce esp32 service port 8888 TCP
@@ -427,7 +440,7 @@ void startMDNS() {
 
 // Arduino core -------------------------------------------------------------
 void frame_setup() {
-  Serial.println(F("Setup started."));
+  DBXLN(F("Setup started."));
   startSPIFFS();                   // Start FS (list all contents)
   loadConfiguration(filename, config); // Read config file
   startWifiManager();              // Start a Wi-Fi access point, and try to connect
@@ -435,7 +448,7 @@ void frame_setup() {
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
   startMDNS();                     // Start the mDNS responder
-  Serial.print(F("Setup finished IP:"));Serial.println(WiFi.localIP());;
+  DBX(F("Setup finished IP:"));Serial.println(WiFi.localIP());;
 }
 // Main loop -----------------------------------------------------------------
 void frame_loop() {

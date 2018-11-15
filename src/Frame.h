@@ -22,7 +22,6 @@
 #include "ESPmDNS.h"
 
 // Debug macro
-//#define DEBUG_FRAME
 #ifdef DEBUG_FRAME
   #define DBX(...) Serial.print(__VA_ARGS__)
   #define DBXLN(...) Serial.println(__VA_ARGS__)
@@ -138,6 +137,7 @@ String getContentType(String filename) {
   } else if (filename.endsWith(".gz"))  { return "application/x-gzip"; }
   return "text/plain";
 }
+
 // Save config file
 String saveConfiguration(const char *filename, const Config &config) {
   File file = SPIFFS.open(filename, "w");
@@ -167,7 +167,7 @@ void loadConfiguration(const char *filename, Config &config) {
     DBXLN(F(" Config file is absent."));
   size_t size = file.size();
   if (size > 1024)
-    DBXLN(F(" Fichier config trop grand."));
+    DBXLN(F(" Config file too large."));
   // allocate buffer for loading config
   std::unique_ptr<char[]> buf(new char[size]);
   file.readBytes(buf.get(), size);
@@ -186,7 +186,7 @@ void loadConfiguration(const char *filename, Config &config) {
   strlcpy(config.UploadPassword, rootcfg["UploadPassword"] | "admin",sizeof(config.UploadPassword));
   config.UseToolsLocal = rootcfg["UseToolsLocal"] | true;
   if (!rootcfg.success()) {
-    DBXLN(F("Erreur lecture fichier config."));
+    DBXLN(F("Error config file reading."));
     String ret = saveConfiguration(filename, config);
     DBXLN(ret);
   }
@@ -194,13 +194,10 @@ void loadConfiguration(const char *filename, Config &config) {
 
 //  configModeCallback callback when entering into AP mode
 void configModeCallback (WiFiManager *myWiFiManager) {
-  DBXLN(F("Choisir AP.."));
-  delay(3000);
+  DBXLN(F("Select AP.."));
   DBXLN(WiFi.softAPIP().toString());
-  delay(3000);
   DBXLN(myWiFiManager->getConfigPortalSSID());
   DBXLN(WiFi.softAPIP());
-  //if you used auto generated SSID, print it
   DBXLN(myWiFiManager->getConfigPortalSSID());
 }
 
@@ -367,7 +364,7 @@ void handleNotFound(){ // if the requested file or page doesn't exist, return a 
 // Start web server
 void startWebServer(){
   // POST
-  server.on("/post",  HTTP_POST, []() {  // If a POST request is sent to the /edit.html address,
+  server.on("/post",  HTTP_POST, []() {        // If a POST request is sent to the /edit.html address,
     handlePost();
   });
  // Test
@@ -440,7 +437,7 @@ void startMDNS() {
 
 // Arduino core -------------------------------------------------------------
 void frame_setup() {
-  DBXLN(F("Setup started."));
+  DBXLN(F("Setup_Frame started."));
   startSPIFFS();                   // Start FS (list all contents)
   loadConfiguration(filename, config); // Read config file
   startWifiManager();              // Start a Wi-Fi access point, and try to connect
@@ -448,7 +445,8 @@ void frame_setup() {
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
   startMDNS();                     // Start the mDNS responder
-  DBX(F("Setup finished IP:"));Serial.println(WiFi.localIP());;
+  DBX(F("Setup_Frame finished IP:"));
+  Serial.println(WiFi.localIP());;
 }
 // Main loop -----------------------------------------------------------------
 void frame_loop() {

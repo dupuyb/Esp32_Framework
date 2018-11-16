@@ -11,12 +11,14 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
   switch(type) {
     case WStype_DISCONNECTED:
     break;
-    case WStype_CONNECTED:  {
+    case WStype_CONNECTED:
+    {
       IPAddress ip = webSocket.remoteIP(num);
       Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
     }
     break;
-    case WStype_TEXT:  {
+    case WStype_TEXT:
+    {
       String _payload = String((char *) &payload[0]);
       Serial.println(_payload);
     }

@@ -31,16 +31,17 @@
 #endif
 
 // constant HTML Uploader if not defined in FS
-const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32Dudu</title><meta content='width=device-width' name='viewport'></head>";
-const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style=\"background-color:lightblue\">HTML Uploader</h1></header><div><p style=\"text-align: center\">Use this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p><form method=\"post\" enctype=\"multipart/form-data\" style=\"margin: 0px auto 8px auto\" ><input type=\"file\" name=\"Choose file\" accept=\".gz,.html,.ico,.js,.css,.png,.gif,.jpg,.xml,.pdf,.htm\"><input class=\"button\" type=\"submit\" value=\"Upload\" name=\"submit\"></form></div></center></body></html>";
-// constant HTML Tools if not defined in FS
-const char HTTP_BODYID[] PROGMEM = "<script>function valid(param) { var r = confirm(\"Are you sure you want to execute this action?\");if (r == true) { window.location=param; } }</script><body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Tools</h1></header><div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"400\" cellpadding=\"0\"><tr><td>- Show List of files in Embedded File System</td><td align=\"right\"><button  style=\"width: 90px;\" onClick=\"window.location='/ls';\">Ls</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files facility to the E.F.S.</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/Upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
+const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
+const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>\nUse this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p>\n<form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto' >\n<input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.css,.png,.gif,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>\n</div></center></body></html>";
+// constant HTML Tools if not defined in FS // not use <script>function valid(param) { var r = confirm(\"Are you sure you want to execute this action?\");if (r == true) { window.location=param; } }</script>
+const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Tools</h1></header>\n<div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"400\" cellpadding=\"0\"><tr><td>- Show files explorer in Embedded File System</td><td align=\"right\"><button  style=\"width: 90px;\" onClick=\"window.location='/explorer';\">Explorer</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files facility to the E.F.S.</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/Upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
 const char HTTP_BODYI0[] PROGMEM = "<p style=\"line-height: .1;\"><em><strong>System facilities</strong></em></p><table width=\"400\" cellpadding=\"0\"><tbody><tr><tdstyle=\"line-height: 1.1; font-size: 10px;\">Several system commands are available:<br />- <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove files to E.F.S**</td></tr></tbody></table><table width=\"400\" cellpadding=\"0\"><tbody><tr><td>- Select one command in the list :</td><td><form action=\"post\" method=\"post\"><select name=\"cmd\"><option value=\"none\"></option><option value=\"restart\">Restart</option><option value=\"save-config\">Save Config.*</option><option value=\"restore\">Restore**</option></select><button type=\"submit\">Valid</button></form></td></tr></tbody></table>";
 const char HTTP_BODYI1[] PROGMEM = "</p><p style=\"line-height: 1.0; font-size: 10px;\">* All parameters in config.json file will be affected. <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted &amp; cleared.</p></div><div>&nbsp;</div></div></center></body></html>";
 // constant HTML update if not defined in FS
 const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>HTML Update OTA</h1></header><div><p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br/>You can use the binary format (firmware.bin) files.</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin' name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p> <script>$('form').submit(function(e){e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form); $.ajax({url: '/update',type: 'POST',data: data,contentType: false,processData:false,xhr: function() {var xhr=new window.XMLHttpRequest(); xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded/evt.total; $('#prg').html('progress: '+Math.round(per*100)+'%');}}, false);return  xhr;},success:function(d, s){console.log('success!')},error: function (a, b, c) {}});});</script></center></body></ntml>";
+const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) { var r = confirm('Are you sure you want to '+pa+' '+el+' ?');if (r == true) { window.location='/explorer?cmd='+pa+'&file='+el; } }</script>\n<center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table  width='500' cellpadding='0'>\n<tr><th>File Name</th><th>Size</th><th>Action</th></tr>\n";
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
 //Init JSON
 DynamicJsonBuffer jsonBuffer(500);
@@ -344,14 +345,15 @@ String textNotFound(){
   return message;
 }
 void handlePost() {
-  for (uint8_t i=0; i<server.args(); i++) {
-    if (server.argName(i).equals("cmd")) {
+  if (server.arg("cmd")!="") {
+//  for (uint8_t i=0; i<server.args(); i++) {
+//    if (server.argName(i).equals("cmd")) {
       if (!server.authenticate(config.UploadName, config.UploadPassword))
         return server.requestAuthentication();
-      if (server.arg(i).equals("save-config") ) saveConfiguration(filename, config);
-      if (server.arg(i).equals("restart") ) RebootAsap = true;
-      if (server.arg(i).equals("restore") ) RestoreAsap = true;
-    }
+      if (server.arg("cmd").equals("save-config") ) saveConfiguration(filename, config);
+      if (server.arg("cmd").equals("restart") ) RebootAsap = true;
+      if (server.arg("cmd").equals("restore") ) RestoreAsap = true;
+//    }
   }
   server.sendHeader("Location","/");      // Redirect the client to the index page
   server.send(303);
@@ -360,6 +362,38 @@ void handleNotFound(){ // if the requested file or page doesn't exist, return a 
   if(!handleFileRead(server.uri())){          // check if the file exists in the flash memory (SPIFFS), if so, send it
     server.send(404, "text/plain", textNotFound());
   }
+}
+//  Directory list
+void explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
+  File root = fs.open(dirname);
+  if (!root) {  return;  }
+  if (!root.isDirectory()) { return; }
+  File file = root.openNextFile();
+  while (file) {
+    if (file.isDirectory()) {
+      if (levels)  explorer(ret, fs, file.name(), levels - 1);
+    } else {
+			ret += "<tr><td>";	ret += (file.name());
+			ret += "</td><td>"+(formatBytes(file.size()))+"</td>\n";
+			ret += "<td style='text-align: center;''><button onClick=\"clic('remove', '"; ret += (file.name());
+			ret += "' )\">Remove</button>\n <button onClick=\"clic('download', '"; ret += (file.name());
+		  ret += "' )\">Download</button></td></tr>\n";
+    }
+    file = root.openNextFile();
+  }
+  return;
+}
+void download(String filename){
+  File download = SPIFFS.open(filename);
+  if (download) {
+    server.sendHeader("Content-Type", "text/text");
+    server.sendHeader("Content-Disposition", "attachment; filename="+filename);
+    server.sendHeader("Connection", "close");
+    server.streamFile(download, "application/octet-stream");
+    download.close();
+    return;
+  }
+  server.send(500, "text/plain", "500: couldn't download file");
 }
 // Start web server
 void startWebServer(){
@@ -419,6 +453,22 @@ void startWebServer(){
     if (!handleFileRead(server.uri())) {
       server.send(404, "text/plain", "FileNotFound");
     }
+  });
+  server.on("/explorer", [](){                      // Get list of file in FS
+    // showAH();
+    if (server.arg("cmd")=="remove") {
+        if (!server.authenticate(config.UploadName, config.UploadPassword)) return server.requestAuthentication();
+        if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
+    }
+    if (server.arg("cmd")=="download") {
+        if (!server.authenticate(config.UploadName, config.UploadPassword)) return server.requestAuthentication();
+        if (server.arg("file") != "" ) download(server.arg("file"));
+    }
+    String msg = FPSTR(HTTP_HEADAL);
+    msg += FPSTR(HTTP_EXPL0);
+    explorer(msg, SPIFFS, "/", 0);
+    msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
+    server.send(200, "text/html", msg);
   });
   server.onNotFound(handleNotFound);         // Not found page
   server.begin();

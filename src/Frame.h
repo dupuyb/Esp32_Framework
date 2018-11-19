@@ -1,10 +1,10 @@
 #ifndef Frame_h
 #define Frame_h
 
-// File FS (file system), added to pltformio.ini lib_deps
+// File FS SPI Flash File System
 #include <FS.h>
 #include <SPIFFS.h>
-// JSon install ArduinoJson by Benoit Blanchon, added to pltformio.ini lib_deps
+// JSon install ArduinoJson by Benoit Blanchon
 #include <ArduinoJson.h>
 // OTA need WiFiUdp
 #include <WiFiUdp.h>
@@ -30,13 +30,15 @@
   #define DBXLN(...)
 #endif
 
+const char  FrameVersion[] PROGMEM = "-=< Ver:0.1.2 >=-";
+
 // constant HTML Uploader if not defined in FS
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>\nUse this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p>\n<form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto' >\n<input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.css,.png,.gif,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>\n</div><a class='button' href='/''>Back</a></center></body></html>";
 
 // constant HTML Tools if not defined in FS // not use <script>function valid(param) { var r = confirm(\"Are you sure you want to execute this action?\");if (r == true) { window.location=param; } }</script>
-const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Tools</h1></header>\n<div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"400\" cellpadding=\"0\"><tr><td>- Files explorer of SPI Flash File System</td><td align=\"right\"><button  style=\"width: 60px;\" onClick=\"window.location='/explorer';\">Explorer</button><button  style=\"width: 28px;\" onClick=\"window.location='/ls';\">Ls</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files to SPI Flash File System</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90px;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
-const char HTTP_BODYI0[] PROGMEM = "<p style=\"line-height: .1;\"><em><strong>System facilities</strong></em></p><table width=\"400\" cellpadding=\"0\"><tbody><tr><tdstyle=\"line-height: 1.1; font-size: 10px;\">Several system commands are available:<br />- <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove files to E.F.S**</td></tr></tbody></table><table width=\"400\" cellpadding=\"0\"><tbody><tr><td>- Select one command in the list :</td><td><form action=\"post\" method=\"post\"><select name=\"cmd\"><option value=\"none\"></option><option value=\"restart\">Restart</option><option value=\"save-config\">Save Config.*</option><option value=\"restore\">Restore**</option></select><button type=\"submit\">Valid</button></form></td></tr></tbody></table>";
+const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Tools</h1></header>\n<div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"500\" cellpadding=\"0\"><tr><td>- Files explorer of SPI Flash File System</td><td align=\"right\"><button  style=\"width: 60%;\" onClick=\"window.location='/explorer';\">Explorer</button><button  style=\"width: 28%;\" onClick=\"window.location='/ls';\">Ls</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files to SPI Flash File System</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
+const char HTTP_BODYI0[] PROGMEM = "<p style=\"line-height: .1;\"><em><strong>System facilities</strong></em></p><table width=\"400\" cellpadding=\"0\"><tbody><tr><tdstyle=\"line-height: 1.1; font-size: 10px;\">Several system commands are available:<br />- <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove files to E.F.S**</td></tr></tbody></table><table width=\"500\" cellpadding=\"0\"><tbody><tr><td>- Select one command in the list :</td><td><form action=\"post\" method=\"post\"><select name=\"cmd\"><option value=\"none\"></option><option value=\"restart\">Restart</option><option value=\"save-config\">Save Config.*</option><option value=\"restore\">Restore**</option></select><button type=\"submit\">Valid</button></form></td></tr></tbody></table>";
 const char HTTP_BODYI1[] PROGMEM = "</p><p style=\"line-height: 1.0; font-size: 10px;\">* All parameters in config.json file will be affected. <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted &amp; cleared.</p></div><div>&nbsp;</div></div></center></body></html>";
 
 // constant HTML update if not defined in FS
@@ -102,20 +104,20 @@ String formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
 //  Directory list
 void listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   ret += F("Listing directory: ");
-  ret += dirname; ret += "\n";
+  ret += dirname; ret += "\n\r";
   File root = fs.open(dirname);
-  if (!root) { ret += F("Failed to open directory\n");  return;  }
-  if (!root.isDirectory()) { ret += F("Not a directory\n"); return; }
+  if (!root) { ret += F("Failed to open directory\n\r");  return;  }
+  if (!root.isDirectory()) { ret += F("Not a directory\n\r"); return; }
   File file = root.openNextFile();
   while (file) {
     if (file.isDirectory()) {
-      ret += F("  DIR : "); ret += file.name(); ret += "\n";
+      ret += F("  DIR : "); ret += file.name(); ret += "\n\r";
       if (levels)  listDir(ret, fs, file.name(), levels - 1);
     } else {
       ret += F("  FILE: "); ret += (file.name());  // SPIFFS_OBJ_NAME_LEN=32
       for (uint8_t l=strlen(file.name()); l<32; l+=8)
         ret += "\t";
-      ret += F("  SIZE: "); ret += (formatBytes(file.size())); ret += "\n";
+      ret += F("  SIZE: "); ret += (formatBytes(file.size())); ret += "\n\r";
     }
     file = root.openNextFile();
   }
@@ -236,14 +238,14 @@ void startOTA(){
 
 // Show HTML Arguments and Header (use for debugging)
 void showAH(){
-	String m = "Nbr of args:";	m+=server.args();	m+="\n";
+	String m = "Nbr of args:";	m+=server.args();	m+="\n\r";
 	for(int i = 0; i < server.args(); i++) {
-		m+="Arg["+(String)i+"]=";		m+=server.argName(i)+":";	m+=server.arg(i)+"\n";
+		m+="Arg["+(String)i+"]=";		m+=server.argName(i)+":";	m+=server.arg(i)+"\n\r";
 	}
 	Serial.print(m);
-	String mm = "Nbr of heders:";	mm+=server.headers();	mm+="\n";
+	String mm = "Nbr of heders:";	mm+=server.headers();	mm+="\n\r";
 	for(int i = 0; i < server.headers(); i++) {
-		mm+="Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n";
+		mm+="Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n\r";
 	}
 	Serial.print(mm);
 	Serial.print("hostHeader:");Serial.println(server.hostHeader());
@@ -386,10 +388,12 @@ void explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
     if (file.isDirectory()) {
       if (levels)  explorer(ret, fs, file.name(), levels - 1);
     } else {
-			ret += "<tr><td>";	ret += (file.name());
+      String strf = (file.name());
+			ret += "<tr><td>";
+      ret += "<a href='";ret += strf;ret += "' >";ret += strf; ret += "</a>";
 			ret += "</td><td>"+(formatBytes(file.size()))+"</td>\n";
-			ret += "<td style='text-align: center;''><button onClick=\"clic('remove', '"; ret += (file.name());
-			ret += "' )\">Remove</button>\n <button onClick=\"clic('download', '"; ret += (file.name());
+			ret += "<td style='text-align: center;''><button onClick=\"clic('remove', '"; ret += (strf);
+			ret += "' )\">Remove</button>\n <button onClick=\"clic('download', '"; ret += (strf);
 		  ret += "' )\">Download</button></td></tr>\n";
     }
     file = root.openNextFile();
@@ -416,10 +420,7 @@ void startWebServer(){
   server.on("/post",  HTTP_POST, []() {        // If a POST request is sent to the /edit.html address,
     handlePost();
   });
- // Test
-  server.on("/inline", [](){
-    server.send(200, "text/plain", "this works as well"); // Just for some test
-  });
+
   // Simple command wihout pwd
   server.on("/ls", [](){                      // Get list of file in FS
     String ls;
@@ -434,7 +435,7 @@ void startWebServer(){
   },[](){
     HTTPUpload& upload = server.upload();
     if(upload.status == UPLOAD_FILE_START){
-      Serial.printf("Update: %s\n", upload.filename.c_str());
+      Serial.printf("Update: %s\n\r", upload.filename.c_str());
       if(!Update.begin(UPDATE_SIZE_UNKNOWN)){//start with max available size
         Update.printError(Serial);
       }
@@ -445,7 +446,7 @@ void startWebServer(){
       }
     } else if(upload.status == UPLOAD_FILE_END){
       if(Update.end(true)){ //true to set the size to the current progress
-        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+        Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
       } else {
         Update.printError(Serial);
       }
@@ -511,8 +512,10 @@ void frame_setup() {
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
   startMDNS();                     // Start the mDNS responder
+  DBXLN(FPSTR(FrameVersion));
   DBX(F("Setup_Frame finished IP:"));
   Serial.println(WiFi.localIP());;
+
 }
 
 // Main loop -----------------------------------------------------------------

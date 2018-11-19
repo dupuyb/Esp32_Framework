@@ -1,9 +1,10 @@
 #include <Arduino.h>
-//#define DEBUG_FRAME   // Debug frame before header
+#define DEBUG_FRAME   // Debug frame before header
 #include "Frame.h"
 
 #define EspLedBlue 2
 long previousMillis  = 0;       // Use in loop
+
 
 // Web socket Use for external command
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {

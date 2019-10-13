@@ -5,7 +5,6 @@
 #define EspLedBlue 2
 long previousMillis  = 0;       // Use in loop
 
-
 // Web socket Use for external command
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
   Serial.printf("[%u] get Message: %s\r\n", num, payload);
@@ -34,14 +33,17 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 // Arduino core -------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
+  Serial.println("Start Frame.Setup()");
   // Set pin mode
   pinMode(EspLedBlue, OUTPUT);     // Led is BLUE at statup
   digitalWrite(EspLedBlue, HIGH);  // After 5 seconds blinking indicate WiFI is OK
+  Serial.println("Start Frame.frame_setup()");
   delay(5000);                     // If stay BLUE after 5 sec mode AccessPoint
   // Start framework
   frame_setup();
 }
 // Main loop -----------------------------------------------------------------
+ int count = 0;
 void loop() {
   // Call frame loop
   frame_loop();
@@ -49,5 +51,6 @@ void loop() {
   if ( millis() - previousMillis > 1000L) {
     previousMillis = millis();
     digitalWrite(EspLedBlue, !digitalRead(EspLedBlue));
+    Serial.printf("%d Frame default loop.\n\r", count++);
   }
 }

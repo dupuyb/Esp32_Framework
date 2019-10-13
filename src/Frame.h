@@ -183,7 +183,7 @@ void loadConfiguration(const char *filename, Config &config) {
 
   // Set config or defaults
   strlcpy(config.HostName, rootcfg["HostName"] | "esp32dudu",sizeof(config.HostName));
-  byte new_mac[8] = {0x30,0xAE,0xA4,0x90,0xFD,0xC8};
+  byte new_mac[8] = {0x30,0xAE,0xA4,0x90,0xFD,0xC8}; //! TODO Random number
   JsonArray mac = rootcfg["MacAddress"];
   for (int i=0; i<6; i++)
     config.MacAddress[i] = mac[i] | new_mac[i];
@@ -569,7 +569,7 @@ void frame_setup() {
   startMDNS();                     // Start the mDNS responder
   DBXLN(FPSTR(FrameVersion));
   DBX(F("Setup_Frame finished IP:"));
-  Serial.println(WiFi.localIP());;
+  Serial.println(WiFi.localIP());
 }
 
 // Main loop -----------------------------------------------------------------

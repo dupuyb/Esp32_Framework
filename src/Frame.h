@@ -2,6 +2,7 @@
 #define Frame_h
 
 // File FS SPI Flash File System
+#include "eth_phy/phy.h"
 #include <FS.h>
 #include <SPIFFS.h>
 // JSon install ArduinoJson by Benoit Blanchon
@@ -23,14 +24,16 @@
 
 // Debug macro
 #ifdef DEBUG_FRAME
-  #define DBX(...) Serial.print(__VA_ARGS__)
-  #define DBXLN(...) Serial.println(__VA_ARGS__)
+  #define FDBX(...) {Serial.print("[F]");Serial.print(__VA_ARGS__);}
+  #define FDBXLN(...) {Serial.print("[F]");Serial.println(__VA_ARGS__);}
+  #define FDBXMF(...) {Serial.print("[F]");Serial.printf(__VA_ARGS__);}
 #else
-  #define DBX(...)
-  #define DBXLN(...)
+  #define FDBX(...)
+  #define FDBXLN(...)
+   #define FDBXMF(...)
 #endif
 
-const char  FrameVersion[] PROGMEM = "-=< Frame Ver:1.0.4 >=-";
+#define FrameVersion "1.1.3"
 
 // constant HTML Uploader if not defined in FS
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
@@ -47,13 +50,14 @@ const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) { var r = confi
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
+
 //Init JSON ArduinoJson 6
 DynamicJsonDocument jsonBuffer(500);
 
 // Default value in loadConfiguration function
 struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)
   char HostName[20];       // Default esp32dudu
-  byte MacAddress[6];      // Default 0x30,0xAE,0xA4,0x90,0xFD,0xC8
+  byte MacAddress[6];      // Default MAC from HW es:0x30,0xAE,0xA4,0x90,0xFD,0xC8
   bool ResetWifi;          // Default false WiFimanager reconnect with last data
   char LoginName[20];      // Default login admin For OTA and Web tools
   char LoginPassword[20];  // Default password admin
@@ -155,7 +159,7 @@ String saveConfiguration(const char *filename, const Config &config) {
 // Start SPIFFS & Read config file
 void startSPIFFS() {
   if (SPIFFS.begin()==false){
-    DBXLN(F("SPIFFS was not formatted."));
+    FDBXLN(F("SPIFFS was not formatted."));
     SPIFFS.format();
     SPIFFS.begin();
   }
@@ -163,15 +167,14 @@ void startSPIFFS() {
   // listDir(ls, SPIFFS, "/", 0);
   // DBX(ls);
 }
-
-void loadConfiguration(const char *filename, Config &config) {
+void loadConfiguration(const char *filename, Config &config  ) {
   // Open file for reading configuration
   File file = SPIFFS.open(filename, "r");
   if (!file)
-    DBXLN(F(" Config file is absent."));
+    FDBXLN(F(" Config file is absent."));
   size_t size = file.size();
   if (size > 1024)
-    DBXLN(F(" Config file too large."));
+    FDBXLN(F(" Config file too large."));
 
   // allocate buffer for loading config
   std::unique_ptr<char[]> buf(new char[size]);
@@ -183,18 +186,17 @@ void loadConfiguration(const char *filename, Config &config) {
 
   // Set config or defaults
   strlcpy(config.HostName, rootcfg["HostName"] | "esp32dudu",sizeof(config.HostName));
-  byte new_mac[8] = {0x30,0xAE,0xA4,0x90,0xFD,0xC8}; //! TODO Random number
   JsonArray mac = rootcfg["MacAddress"];
   for (int i=0; i<6; i++)
-    config.MacAddress[i] = mac[i] | new_mac[i];
+     config.MacAddress[i] = mac[i] | 0x0;
   config.ResetWifi = rootcfg["ResetWifi"] | false;
   strlcpy(config.LoginName, rootcfg["LoginName"] | "admin",sizeof(config.LoginName));
   strlcpy(config.LoginPassword, rootcfg["LoginPassword"] | "admin",sizeof(config.LoginPassword));
   config.UseToolsLocal = rootcfg["UseToolsLocal"] | true;
   if ( error ) {
-    DBXLN(F("Error config file reading."));
+    FDBXLN(F("Error config file reading."));
     String ret = saveConfiguration(filename, config);
-    DBXLN(ret);
+    FDBXLN(ret);
   }
 }
 
@@ -211,12 +213,42 @@ void saveConfigCallback () {
 }
 
 // Start WiFiManager
-void startWifiManager() {
+void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
   WiFiManager wifiManager;
+ 
 #ifndef DEBUG_FRAME
   wifiManager.setDebugOutput(false);
 #endif
+
+  //! Warning MacAddress must be UNICAST frame that is bit 0 of first byte must be equals zero
+  if ((config.MacAddress[0]&0x01)==0x01) {
+    Serial.println("[F] WARNING: Mac address is not UNICAST!");
+  }
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
+  
+ // esp_wifi_set_mac(ESP_IF_WIFI_STA, config.MacAddress); // esp32 code
+ // wifi_set_macaddr(SOFTAP_IF, config.MacAddress); //8688 code
+ // wifi_set_macaddr(STATION_IF,config.MacAddress); //8688 code
+  // esp_wifi_set_mac(ESP_IF_WIFI_STA, config.MacAddress); // esp32 code
+
+  // OTHER method update MAC in config file
+  /*
+  uint8_t mac[6];
+  if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+  } else {
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+  }
+  Serial.printf("startWifiManager Heap:%u IP:%s MAC:%s \n\r",ESP.getFreeHeap(), WiFi.localIP().toString().c_str() , WiFi.macAddress().c_str()); 
+  if (memcmp ( mac , config.MacAddress, sizeof(config.MacAddress) ) != 0 ) {  
+    DBXMF("Mac address not correct HW(%s)", WiFi.macAddress().c_str());
+    for (int i=0; i<6; i++)
+      config.MacAddress[i] =  mac[i];
+    String ret = saveConfiguration(filename, config);
+    DBXLN(ret);
+  }
+*/
+
   // set AP Static AP
   // wifiManager.setAPStaticIPConfig(IPAddress(192,168,0,1), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
   //set static ip
@@ -226,26 +258,33 @@ void startWifiManager() {
   //   _sn.fromString(static_sn);
   //   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   // ------------------------
+
   //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
-  if (config.ResetWifi) wifiManager.resetSettings();
+  if (config.ResetWifi)  wifiManager.resetSettings();
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
+  if (func==NULL) {
+    wifiManager.setAPCallback(configModeCallback);
+  } else {
+    wifiManager.setAPCallback(func);
+  }
+
   //Recupere les identifiants   ssid et Mot de passe dans l'eprom  et essayes de se connecter
   //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
-  // wifiManager.setConnectTimeout(60)
-  if ( !wifiManager.autoConnect(config.HostName) ) {
-    Serial.println("failed to connect and hit timeout.");
+ // wifiManager.setConnectTimeout(60);
+  
+  if ( ! wifiManager.autoConnect( config.HostName) ) {
+    FDBX("failed to connect and hit timeout.");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
     ESP.restart();
     delay(5000);
   }
   // Wait for connection
-  Serial.println(F("Waitting Wifi connected..."));
+  FDBX(F("Waitting Wifi connected..."));
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500); DBX(".");
+    delay(500); FDBX(".");
   }
 }
 
@@ -334,7 +373,7 @@ String simpleFirmware(){
 
 // Handle Web server
 bool handleFileRead(String path) {                         // send the right file to the client (if it exists)
-  DBXLN("handleFileRead: " + path);
+  FDBXLN("handleFileRead: " + path);
   if (path.endsWith("/")) path += "index.html";            // If a folder is requested, send the index file
   String contentType = getContentType(path);               // Get the MIME type
   String pathWithGz = path + ".gz";
@@ -344,7 +383,7 @@ bool handleFileRead(String path) {                         // send the right fil
     File file = SPIFFS.open(path, "r");                    // Open the file
     server.streamFile(file, contentType);                  // Send it to the client
     file.close();                                          // Close the file again
-    DBXLN("\tSent file: " + path);
+    FDBXLN("\tSent file: " + path);
     return true;
   } else {
     if (config.UseToolsLocal) {
@@ -367,7 +406,7 @@ bool handleFileRead(String path) {                         // send the right fil
       }
     }
   }
-  DBXLN("\tFile Not Found: " + path);             // If the file doesn't exist, return false
+  FDBXLN("\tFile Not Found: " + path);             // If the file doesn't exist, return false
   return false;
 }
 
@@ -382,8 +421,8 @@ void handleFileUpload(){                                // upload a new file to 
       if(SPIFFS.exists(pathWithGz))                      // version of that file must be deleted (if it exists)
          SPIFFS.remove(pathWithGz);
     }
-    DBX(F("handleFileUpload Name: "));
-    DBXLN(path);
+    FDBX(F("handleFileUpload Name: "));
+    FDBXLN(path);
     fsUploadFile = SPIFFS.open(path, "w");                // Open the file for writing in SPIFFS (create if it doesn't exist)
     path = String();
   } else if(upload.status == UPLOAD_FILE_WRITE){
@@ -392,8 +431,8 @@ void handleFileUpload(){                                // upload a new file to 
   } else if(upload.status == UPLOAD_FILE_END){
     if(fsUploadFile) {                                    // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
-      DBX(F("handleFileUpload Size: "));
-      DBXLN(upload.totalSize);
+      FDBX(F("handleFileUpload Size: "));
+      FDBXLN(upload.totalSize);
       server.sendHeader("Location","/success.html");      // Redirect the client to the success page
       server.send(303);
     } else {
@@ -526,7 +565,9 @@ void startWebServer(){
     }
   });
   server.on("/explorer", [](){                      // Get list of file in FS
-    // showAH();
+  #ifndef DEBUG_FRAME
+    showAH();
+  #endif
     if (!server.authenticate(config.LoginName, config.LoginPassword)) return server.requestAuthentication();
     if (server.arg("cmd")=="remove") {
       if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
@@ -550,26 +591,25 @@ void startMDNS() {
   // - first argument is the domain name, in this example   the fully-qualified domain name is "esp8266.local"
   // - second argument is the IP address to advertise   we send our IP address on the WiFi network
   if (!MDNS.begin(config.HostName))
-    DBXLN(F("Error setting up MDNS responder!"));
-  DBX( F("mDNS responder started: ")); DBXLN(config.HostName);
+    FDBXLN(F("Error setting up MDNS responder!"));
+  FDBX( F("mDNS responder started: ")); FDBXLN(config.HostName);
   MDNS.addService("http",  "tcp", 80);
   MDNS.addService("ws",    "tcp", 81);
   MDNS.addService("esp32", "tcp", 8888); // Announce esp32 service port 8888 TCP
 }
 
 // Arduino core -------------------------------------------------------------
-void frame_setup() {
-  DBXLN(F("Setup_Frame started."));
+void frame_setup( void (*func)(WiFiManager* myWiFiManager) = NULL) {
+  FDBXMF("Setup_Frame started version: %s\n\r", FrameVersion);
   startSPIFFS();                   // Start FS (list all contents)
   loadConfiguration(filename, config); // Read config file
-  startWifiManager();              // Start a Wi-Fi access point, and try to connect
+  startWifiManager(func);          // Start a Wi-Fi access point, and try to connect
   startOTA();                      // Start the OTA service
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
-  startMDNS();                     // Start the mDNS responder
-  DBXLN(FPSTR(FrameVersion));
-  DBX(F("Setup_Frame finished IP:"));
-  Serial.println(WiFi.localIP());
+  startMDNS();                     // Start the mDNS responder  //DBXLN(FPSTR(FrameVersion));
+  FDBXMF("Frame_setup ready  IP: %s\n\r", WiFi.localIP().toString().c_str());
+  FDBXMF("Frame_setup ready MAC: %s\n\r", WiFi.macAddress().c_str() );
 }
 
 // Main loop -----------------------------------------------------------------
@@ -579,6 +619,7 @@ void frame_loop() {
   ArduinoOTA.handle();           // listen for OTA events
   if (RebootAsap) ESP.restart(); // Restart in case of error
   if (RestoreAsap) {             // Reset to factory settings
+    FDBXLN("Fromat SPIFS...");
     SPIFFS.format();
     WiFiManager wifiManager;
     wifiManager.resetSettings(); // BUG the stored ssid no clear !!

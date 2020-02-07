@@ -1,41 +1,6 @@
-#ifndef Frame_h
-#define Frame_h
+#include "FrameWeb.h"
 
-// File FS SPI Flash File System
-#include "eth_phy/phy.h"
-#include <FS.h>
-#include <SPIFFS.h>
-// JSon install ArduinoJson by Benoit Blanchon
-#include <ArduinoJson.h>
-// OTA need WiFiUdp
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <Update.h>
-// WiFimanager need WiFi WebServer WiFimanager
-#include <WiFi.h>
-#include <DNSServer.h>
-#include <WebServer.h>
- //https://github.com/tzapu/WiFiManager  NOT ASP32 full compatible.
-#include <WiFiManager.h>
-// WebSocket
-#include <WebSocketsServer.h>
-// mDNS
-#include "ESPmDNS.h"
-
-// Debug macro
-#ifdef DEBUG_FRAME
-  #define FDBX(...) {Serial.print("[F]");Serial.print(__VA_ARGS__);}
-  #define FDBXLN(...) {Serial.print("[F]");Serial.println(__VA_ARGS__);}
-  #define FDBXMF(...) {Serial.print("[F]");Serial.printf(__VA_ARGS__);}
-#else
-  #define FDBX(...)
-  #define FDBXLN(...)
-   #define FDBXMF(...)
-#endif
-
-#define FrameVersion "1.1.3"
-
-// constant HTML Uploader if not defined in FS
+ // constant HTML Uploader if not defined in FS
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>\nUse this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p>\n<form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto' >\n<input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>\n</div><a class='button' href='/''>Back</a></center></body></html>";
 
@@ -48,38 +13,19 @@ const char HTTP_BODYI1[] PROGMEM = "</p><p style=\"line-height: 1.0; font-size: 
 const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>HTML Update OTA</h1></header><div><p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br/>You can use the binary format (firmware.bin) files.</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin' name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p> <script>$('form').submit(function(e){e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form); $.ajax({url: '/update',type: 'POST',data: data,contentType: false,processData:false,xhr: function() {var xhr=new window.XMLHttpRequest(); xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded/evt.total; $('#prg').html('progress: '+Math.round(per*100)+'%');}}, false);return  xhr;},success:function(d, s){console.log('success!')},error: function (a, b, c) {}});});</script><a class='button' href='/''>Back</a></center></body></ntml>";
 const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) { var r = confirm('Are you sure you want to '+pa+' '+el+' ?');if (r == true) { window.location='/explorer?cmd='+pa+'&file='+el; } }</script>\n<center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table  width='500' cellpadding='0'>\n<tr><th>File Name</th><th>Size</th><th>Action</th></tr>\n";
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
+FrameWeb* myFrameWeb;
 
-//Init JSON ArduinoJson 6
-DynamicJsonDocument jsonBuffer(500);
+FrameWeb::FrameWeb(){
+  myFrameWeb = this;
+}
+FrameWeb::~FrameWeb(){
+}
 
-// Default value in loadConfiguration function
-struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)
-  char HostName[20];       // Default hostname "esp32dudu"
-  byte MacAddress[6];      // Default MAC from HW es:0x30,0xAE,0xA4,0x90,0xFD,0xC8
-  bool ResetWifi;          // Default false WiFimanager reconnect with last data
-  char LoginName[20];      // Default login admin For OTA and Web tools
-  char LoginPassword[20];  // Default password admin
-  bool UseToolsLocal;      // True if simpleUpload must be called in case of not Upload.html
-};
-
-// variables Global
-const char *filename = "/config.json"; // file configuration
-bool RebootAsap      = false;   // Error OTA
-bool RestoreAsap     = false;   // Reset to factory settings
-Config config;                  // Struct Config
-File fsUploadFile;              // File variable to temporarily store the received file
-
-// services WEB
-WebServer server(80);
-WebSocketsServer webSocket = WebSocketsServer(81);
-
-String JsonConfig() {
+String FrameWeb::JsonConfig() {
   String configjson;
   // ArduinoJson 6
   DynamicJsonDocument rootcfg(1024);
-
   // Set the values
   rootcfg["HostName"]      = config.HostName;
   JsonArray mac = rootcfg.createNestedArray("MacAddress");
@@ -89,13 +35,12 @@ String JsonConfig() {
   rootcfg["LoginName"]     = config.LoginName;
   rootcfg["LoginPassword"] = config.LoginPassword;
   rootcfg["UseToolsLocal"] = config.UseToolsLocal;
-
   // Transform to string
   serializeJson(rootcfg, configjson);
   return configjson;
 }
 
-String formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
+String FrameWeb::formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
   if (bytes < 1024) {
     return String(bytes) + "B";
   } else if (bytes < (1024 * 1024)) {
@@ -107,7 +52,7 @@ String formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
 }
 
 //  Directory list
-void listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
+void FrameWeb::listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   ret += F("Listing directory: ");
   ret += dirname; ret += "\n";
   File root = fs.open(dirname);
@@ -129,7 +74,7 @@ void listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   return;
 }
 
-String getContentType(String filename) {
+String FrameWeb::getContentType(String filename) {
   if (server.hasArg("download"))        { return "application/octet-stream";
   } else if (filename.endsWith(".htm")) { return "text/html";
   } else if (filename.endsWith(".html")){ return "text/html";
@@ -147,7 +92,7 @@ String getContentType(String filename) {
 }
 
 // Save config file
-String saveConfiguration(const char *filename, const Config &config) {
+String FrameWeb::saveConfiguration(const char *filename, const Config &config) {
   File file = SPIFFS.open(filename, "w");
   if (!file)
     return F("Can't write in Config file.");
@@ -157,7 +102,7 @@ String saveConfiguration(const char *filename, const Config &config) {
 }
 
 // Start SPIFFS & Read config file
-void startSPIFFS() {
+void FrameWeb::startSPIFFS() {
   if (SPIFFS.begin()==false){
     FDBXLN(F("SPIFFS was not formatted."));
     SPIFFS.format();
@@ -168,7 +113,7 @@ void startSPIFFS() {
   // DBX(ls);
 }
 
-void loadConfiguration(const char *filename, Config &config, const char* hname=NULL ) {
+void FrameWeb::loadConfiguration(const char *filename, Config &config, const char* hname) {
   // Open file for reading configuration
   File file = SPIFFS.open(filename, "r");
   if (!file)
@@ -176,15 +121,12 @@ void loadConfiguration(const char *filename, Config &config, const char* hname=N
   size_t size = file.size();
   if (size > 1024)
     FDBXLN(F(" Config file too large."));
-
   // allocate buffer for loading config
   std::unique_ptr<char[]> buf(new char[size]);
   file.readBytes(buf.get(), size);
-
   // ArduinoJson 6
   DynamicJsonDocument rootcfg(1024);
   auto error = deserializeJson(rootcfg, buf.get());
-
   // Set config or defaults
   uint8_t hardwareMacAddess[6];
   esp_read_mac(hardwareMacAddess, ESP_MAC_WIFI_STA);
@@ -203,32 +145,17 @@ void loadConfiguration(const char *filename, Config &config, const char* hname=N
   }
 }
 
-//  configModeCallback callback when entering into AP mode
-void configModeCallback (WiFiManager *myWiFiManager) {
-  Serial.println(F("--=== Select A.P. active  (that means Wifi is down) ===---"));
-  Serial.println(WiFi.softAPIP().toString());
-  Serial.println(myWiFiManager->getConfigPortalSSID());
-}
-
-//callback notifying us of the need to save config
-void saveConfigCallback () {
-  Serial.println(F("Wifi connection has been established."));
-}
-
 // Start WiFiManager
-void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
+void FrameWeb::startWifiManager(void (*func)(WiFiManager* myWiFiManager ) ) {
   WiFiManager wifiManager;
- 
 #ifndef DEBUG_FRAME
   wifiManager.setDebugOutput(false);
 #endif
-
   //! Warning MacAddress must be UNICAST frame that is bit 0 of first byte must be equals zero
   if ((config.MacAddress[0]&0x01)==0x01) {
     Serial.println("[F] WARNING: Mac address is not UNICAST!");
   }
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
-  
  // esp_wifi_set_mac(ESP_IF_WIFI_STA, config.MacAddress); // esp32 code
  // wifi_set_macaddr(SOFTAP_IF, config.MacAddress); //8688 code
  // wifi_set_macaddr(STATION_IF,config.MacAddress); //8688 code
@@ -251,7 +178,6 @@ void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
     DBXLN(ret);
   }
 */
-
   // set AP Static AP
   // wifiManager.setAPStaticIPConfig(IPAddress(192,168,0,1), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
   //set static ip
@@ -261,7 +187,6 @@ void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
   //   _sn.fromString(static_sn);
   //   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   // ------------------------
-
   //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
   if (config.ResetWifi)  wifiManager.resetSettings();
   //set config save notify callback
@@ -272,11 +197,9 @@ void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
   } else {
     wifiManager.setAPCallback(func);
   }
-
   //Recupere les identifiants   ssid et Mot de passe dans l'eprom  et essayes de se connecter
   //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
  // wifiManager.setConnectTimeout(60);
-  
   if ( ! wifiManager.autoConnect( config.HostName) ) {
     FDBX("failed to connect and hit timeout.");
     delay(3000);
@@ -292,7 +215,7 @@ void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
 }
 
 // Start OverTheAir firmware uppload
-void startOTA(){
+void FrameWeb::startOTA() {
   // ArduinoOTA.setPort(8266); default is 8266
   // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname(config.HostName);
@@ -304,7 +227,7 @@ void startOTA(){
 }
 
 // Show HTML Arguments and Header (use for debugging)
-void showAH(){
+void FrameWeb::showAH() {
 	String m = "Nbr of args:";	m+=server.args();	m+="\n\r";
 	for(int i = 0; i < server.args(); i++) {
 		m+="Arg["+(String)i+"]=";		m+=server.argName(i)+":";	m+=server.arg(i)+"\n\r";
@@ -319,7 +242,7 @@ void showAH(){
 }
 
 // Return Wifi Status code as String
-const char* wifiStatus(int err) {
+const char* FrameWeb::wifiStatus(int err) {
   switch (err) {
     case 0: return "WL_IDLE_STATUS"; break;
     case 1: return "WL_NO_SSID_AVAIL"; break;
@@ -334,7 +257,7 @@ const char* wifiStatus(int err) {
 }
 
 // Return Http some Status code as String
-const char* httpStatus(int err) {
+const char* FrameWeb::httpStatus(int err) {
   switch (err) {
     case -1  : return "CONNECTION_REFUSED"; break;
     case -2  : return "SEND_HEADER_FAILED"; break;
@@ -349,18 +272,18 @@ const char* httpStatus(int err) {
 }
 
 // Start webSocket
-void startWebSocket() {
+void FrameWeb::startWebSocket() {
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
 }
 
-String simpleUpload(){
+String FrameWeb::simpleUpload(){
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_BODYUP);
   return message;
 }
 
-String simpleIndex(){
+String FrameWeb::simpleIndex(){
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_BODYID);
   message += FPSTR(HTTP_BODYI0);
@@ -368,14 +291,14 @@ String simpleIndex(){
   return message;
 }
 
-String simpleFirmware(){
+String FrameWeb::simpleFirmware(){
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_FIRM0);
   return message;
 }
 
-// Handle Web server
-bool handleFileRead(String path) {                         // send the right file to the client (if it exists)
+// Handle Web server ----- used in startWebServer -------------------------------------------------------------------
+bool FrameWeb::handleFileRead(String path) {               // send the right file to the client (if it exists)
   FDBXLN("handleFileRead: " + path);
   if (path.endsWith("/")) path += "index.html";            // If a folder is requested, send the index file
   String contentType = getContentType(path);               // Get the MIME type
@@ -409,11 +332,10 @@ bool handleFileRead(String path) {                         // send the right fil
       }
     }
   }
-  FDBXLN("\tFile Not Found: " + path);             // If the file doesn't exist, return false
+  FDBXLN("\tFile Not Found: " + path);                  // If the file doesn't exist, return false
   return false;
 }
-
-void handleFileUpload(){                                // upload a new file to the SPIFFS
+void FrameWeb::handleFileUpload(){                      // upload a new file to the SPIFFS
   HTTPUpload& upload = server.upload();
   String path;
   if(upload.status == UPLOAD_FILE_START){
@@ -426,7 +348,7 @@ void handleFileUpload(){                                // upload a new file to 
     }
     FDBX(F("handleFileUpload Name: "));
     FDBXLN(path);
-    fsUploadFile = SPIFFS.open(path, "w");                // Open the file for writing in SPIFFS (create if it doesn't exist)
+    fsUploadFile = SPIFFS.open(path, "w");               // Open the file for writing in SPIFFS (create if it doesn't exist)
     path = String();
   } else if(upload.status == UPLOAD_FILE_WRITE){
     if(fsUploadFile)
@@ -443,8 +365,7 @@ void handleFileUpload(){                                // upload a new file to 
     }
   }
 }
-
-String textNotFound(){
+String FrameWeb::textNotFound(){
   String message = "404: File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -457,8 +378,7 @@ String textNotFound(){
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   return message;
 }
-
-void handlePost() {
+void FrameWeb::handlePost() {
   if (server.arg("cmd")!="") {
       if (!server.authenticate(config.LoginName, config.LoginPassword))
         return server.requestAuthentication();
@@ -469,14 +389,13 @@ void handlePost() {
   server.sendHeader("Location","/");      // Redirect the client to the index page
   server.send(303);
 }
-void handleNotFound(){ // if the requested file or page doesn't exist, return a 404 not found error
+void FrameWeb::handleNotFound(){ // if the requested file or page doesn't exist, return a 404 not found error
   if(!handleFileRead(server.uri())){          // check if the file exists in the flash memory (SPIFFS), if so, send it
     server.send(404, "text/plain", textNotFound());
   }
 }
-
 //  Directory list
-void explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
+void FrameWeb::explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   File root = fs.open(dirname);
   if (!root) {  return;  }
   if (!root.isDirectory()) { return; }
@@ -497,8 +416,7 @@ void explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   }
   return;
 }
-
-void download(String filename){
+void FrameWeb::download(String filename){
   File download = SPIFFS.open(filename);
   if (download) {
     server.sendHeader("Content-Type", "text/text");
@@ -510,87 +428,163 @@ void download(String filename){
   }
   server.send(500, "text/plain", "500: couldn't download file");
 }
+void FrameWeb::sendLs(){
+  String ls;
+  listDir(ls, SPIFFS, "/", 0);
+  server.send(200, "text/plain", ls);
+}
+void FrameWeb::upload_get(){
+  if (!server.authenticate(config.LoginName, config.LoginPassword)) {
+    return server.requestAuthentication();
+  }
+  if (!handleFileRead("/upload.html")) {    // upload.html exist on FS
+    if (config.UseToolsLocal) server.send(200, "text/html", simpleUpload() ); // If not upload.html in FS send lightweight
+    else server.send(404, "text/plain", "FileNotFound");
+  }
+}
+void FrameWeb::upload_post(){
+  server.send(200, "text/plain", "");
+}
+void FrameWeb::notfound(){
+  if (!handleFileRead(server.uri())) {
+    server.send(404, "text/plain", "FileNotFound");
+  }
+}
+void FrameWeb::exploreWeb(){
+#ifndef DEBUG_FRAME
+  showAH();
+#endif
+  if (!server.authenticate(config.LoginName, config.LoginPassword)) 
+    return server.requestAuthentication();
+  if (server.arg("cmd")=="remove") {
+    if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
+  }
+  if (server.arg("cmd")=="download") {
+    if (server.arg("file") != "" ) download(server.arg("file"));
+  }
+  // Return list of files in table
+  String msg = FPSTR(HTTP_HEADAL);
+  msg += FPSTR(HTTP_EXPL0);
+  explorer(msg, SPIFFS, "/", 0);
+  msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
+  server.send(200, "text/html", msg);
+}
+void FrameWeb::update(){
+  server.sendHeader("Connection", "close");
+  server.send(200, "text/plain", (Update.hasError())?"FAIL":"OK");
+  ESP.restart();
+}
+void FrameWeb::update2(){
+  HTTPUpload& upload = server.upload();
+  if(upload.status == UPLOAD_FILE_START){
+    Serial.printf("Update: %s\n\r", upload.filename.c_str());
+    if(!Update.begin(UPDATE_SIZE_UNKNOWN)){ //start with max available size
+      Update.printError(Serial);
+    }
+  } else if(upload.status == UPLOAD_FILE_WRITE){
+    /* flashing firmware to ESP*/
+    if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
+      Update.printError(Serial);
+    }
+  } else if(upload.status == UPLOAD_FILE_END){
+    if(Update.end(true)){ //true to set the size to the current progress
+      Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
+    } else {
+      Update.printError(Serial);
+    }
+  }
+}
 
-// Start web server
-void startWebServer(){
+// Start web server -------------------------------------------------------------------
+void FrameWeb::startWebServer(){
   // POST
   server.on("/post",  HTTP_POST, []() {        // If a POST request is sent to the /edit.html address,
-    handlePost();
+    std::bind(&FrameWeb::handlePost, myFrameWeb);
+    //handlePost();
   });
-
   // Simple command wihout pwd
   server.on("/ls", [](){                      // Get list of file in FS
-    String ls;
-    listDir(ls, SPIFFS, "/", 0);
-    server.send(200, "text/plain", ls);
+    std::bind(&FrameWeb::sendLs, myFrameWeb);
+    //String ls;
+    //listDir(ls, SPIFFS, "/", 0);
+    //server.send(200, "text/plain", ls);
   });
   /* handling uploading firmware file */
   server.on("/update", HTTP_POST, [](){
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/plain", (Update.hasError())?"FAIL":"OK");
-    ESP.restart();
+     std::bind(&FrameWeb::update, myFrameWeb);
+    // server.sendHeader("Connection", "close");
+    // server.send(200, "text/plain", (Update.hasError())?"FAIL":"OK");
+    // ESP.restart();
   },[](){
-    HTTPUpload& upload = server.upload();
-    if(upload.status == UPLOAD_FILE_START){
-      Serial.printf("Update: %s\n\r", upload.filename.c_str());
-      if(!Update.begin(UPDATE_SIZE_UNKNOWN)){ //start with max available size
-        Update.printError(Serial);
-      }
-    } else if(upload.status == UPLOAD_FILE_WRITE){
-      /* flashing firmware to ESP*/
-      if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
-        Update.printError(Serial);
-      }
-    } else if(upload.status == UPLOAD_FILE_END){
-      if(Update.end(true)){ //true to set the size to the current progress
-        Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
-      } else {
-        Update.printError(Serial);
-      }
-    }
+    std::bind(&FrameWeb::update2, myFrameWeb);
+    // HTTPUpload& upload = server.upload();
+    // if(upload.status == UPLOAD_FILE_START){
+    //   Serial.printf("Update: %s\n\r", upload.filename.c_str());
+    //   if(!Update.begin(UPDATE_SIZE_UNKNOWN)){ //start with max available size
+    //     Update.printError(Serial);
+    //   }
+    // } else if(upload.status == UPLOAD_FILE_WRITE){
+    //   /* flashing firmware to ESP*/
+    //   if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
+    //     Update.printError(Serial);
+    //   }
+    // } else if(upload.status == UPLOAD_FILE_END){
+    //   if(Update.end(true)){ //true to set the size to the current progress
+    //     Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
+    //   } else {
+    //     Update.printError(Serial);
+    //   }
+    // }
   });
   // handling upload file
   server.on("/upload", HTTP_GET, []() {        // Upload
-    if (!server.authenticate(config.LoginName, config.LoginPassword)) {
-      return server.requestAuthentication();
-    }
-    if (!handleFileRead("/upload.html")) {    // upload.html exist on FS
-      if (config.UseToolsLocal) server.send(200, "text/html", simpleUpload() ); // If not upload.html in FS send lightweight
-      else server.send(404, "text/plain", "FileNotFound");
-    }
+    std::bind(&FrameWeb::upload_get, myFrameWeb);
+    // if (!server.authenticate(config.LoginName, config.LoginPassword)) {
+    //   return server.requestAuthentication();
+    // }
+    // if (!handleFileRead("/upload.html")) {    // upload.html exist on FS
+    //   if (config.UseToolsLocal) server.send(200, "text/html", simpleUpload() ); // If not upload.html in FS send lightweight
+    //   else server.send(404, "text/plain", "FileNotFound");
+    // }
   });
   server.on("/upload", HTTP_POST, []() {       // Back after selection
-    server.send(200, "text/plain", "");
-  }, handleFileUpload);
+     std::bind(&FrameWeb::upload_post, myFrameWeb);
+    //server.send(200, "text/plain", "");
+    }, 
+    //handleFileUpload
+    std::bind(&FrameWeb::handleFileUpload, myFrameWeb)
+    );
   server.onNotFound([]() {
-    if (!handleFileRead(server.uri())) {
-      server.send(404, "text/plain", "FileNotFound");
-    }
+    std::bind(&FrameWeb::notfound, myFrameWeb);
+    // if (!handleFileRead(server.uri())) {
+    //   server.send(404, "text/plain", "FileNotFound");
+    // }
   });
-  server.on("/explorer", [](){                      // Get list of file in FS
-  #ifndef DEBUG_FRAME
-    showAH();
-  #endif
-    if (!server.authenticate(config.LoginName, config.LoginPassword)) return server.requestAuthentication();
-    if (server.arg("cmd")=="remove") {
-      if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
-    }
-    if (server.arg("cmd")=="download") {
-      if (server.arg("file") != "" ) download(server.arg("file"));
-    }
-    // Return list of files in table
-    String msg = FPSTR(HTTP_HEADAL);
-    msg += FPSTR(HTTP_EXPL0);
-    explorer(msg, SPIFFS, "/", 0);
-    msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
-    server.send(200, "text/html", msg);
+  server.on("/explorer", [](){                  // Get list of file in FS
+    std::bind(&FrameWeb::exploreWeb, myFrameWeb);
+  // #ifndef DEBUG_FRAME
+  //   showAH();
+  // #endif
+  //   if (!server.authenticate(config.LoginName, config.LoginPassword)) return server.requestAuthentication();
+  //   if (server.arg("cmd")=="remove") {
+  //     if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
+  //   }
+  //   if (server.arg("cmd")=="download") {
+  //     if (server.arg("file") != "" ) download(server.arg("file"));
+  //   }
+  //   // Return list of files in table
+  //   String msg = FPSTR(HTTP_HEADAL);
+  //   msg += FPSTR(HTTP_EXPL0);
+  //   explorer(msg, SPIFFS, "/", 0);
+  //   msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
+  //   server.send(200, "text/html", msg);
   });
-  server.onNotFound(handleNotFound);         // Not found page
+  server.onNotFound(std::bind(&FrameWeb::notfound, myFrameWeb)/*handleNotFound*/);         // Not found page
   server.begin();
 }
 
 // Start MDNS
-void startMDNS() {
+void FrameWeb::startMDNS() {
   // - first argument is the domain name, in this example   the fully-qualified domain name is "esp8266.local"
   // - second argument is the IP address to advertise   we send our IP address on the WiFi network
   if (!MDNS.begin(config.HostName))
@@ -602,8 +596,8 @@ void startMDNS() {
 }
 
 // Arduino core -------------------------------------------------------------
-void frame_setup( void (*func)(WiFiManager* myWiFiManager)=NULL, const char* hostname=NULL) {
-  FDBXMF("Setup_Frame started version: %s\n\r", FrameVersion);
+void FrameWeb::setup( void (*func)(WiFiManager* myWiFiManager), const char* hostname) {
+  FDBXMF("FrameWeb::setup started version: %s\n\r", FrameVersion);
   startSPIFFS();                   // Start FS (list all contents)
   loadConfiguration(filename, config, hostname); // Read config file
   startWifiManager(func);          // Start a Wi-Fi access point, and try to connect
@@ -611,12 +605,11 @@ void frame_setup( void (*func)(WiFiManager* myWiFiManager)=NULL, const char* hos
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
   startMDNS();                     // Start the mDNS responder  //DBXLN(FPSTR(FrameVersion));
-  FDBXMF("Frame_setup ready  IP: %s\n\r", WiFi.localIP().toString().c_str());
-  FDBXMF("Frame_setup ready MAC: %s\n\r", WiFi.macAddress().c_str() );
+  FDBXMF("FrameWeb::setup ready  IP: %s\n\r", WiFi.localIP().toString().c_str());
+  FDBXMF("FrameWeb::setup ready MAC: %s\n\r", WiFi.macAddress().c_str() );
 }
 
-// Main loop -----------------------------------------------------------------
-void frame_loop() {
+void FrameWeb::loop() {
   server.handleClient();         // constantly check for events
   webSocket.loop();              // constantly check for websocket events
   ArduinoOTA.handle();           // listen for OTA events
@@ -629,5 +622,3 @@ void frame_loop() {
     ESP.restart();
   }
 }
-
-#endif

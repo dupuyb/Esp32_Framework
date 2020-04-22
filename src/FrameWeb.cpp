@@ -1,19 +1,26 @@
 #include "FrameWeb.h"
 
  // constant HTML Uploader if not defined in FS
-const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
-const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>\nUse this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p>\n<form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto' >\n<input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>\n</div><a class='button' href='/''>Back</a></center></body></html>";
+const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
+const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file'accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button'type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
+//const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>\n";
+//const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>\nUse this page to upload new files to the ESP32.<br/>You can use compressed (.gz) files.</p>\n<form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto' >\n<input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>\n</div><a class='button' href='/''>Back</a></center></body></html>";
 
 // constant HTML Tools if not defined in FS // not use <script>function valid(param) { var r = confirm(\"Are you sure you want to execute this action?\");if (r == true) { window.location=param; } }</script>
-const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Dudu Tools</h1></header>\n<div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"500\" cellpadding=\"0\"><tr><td>- Files explorer of SPI Flash File System</td><td align=\"right\"><button  style=\"width: 60%;\" onClick=\"window.location='/explorer';\">Explorer</button><button  style=\"width: 28%;\" onClick=\"window.location='/ls';\">Ls</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files to SPI Flash File System</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
-const char HTTP_BODYI0[] PROGMEM = "<p style=\"line-height: .1;\"><em><strong>System facilities</strong></em></p><table width=\"400\" cellpadding=\"0\"><tbody><tr><tdstyle=\"line-height: 1.1; font-size: 10px;\">Several system commands are available:<br />- <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove files to E.F.S**</td></tr></tbody></table><table width=\"500\" cellpadding=\"0\"><tbody><tr><td>- Select one command in the list :</td><td><form action=\"post\" method=\"post\"><select name=\"cmd\"><option value=\"none\"></option><option value=\"restart\">Restart</option><option value=\"save-config\">Save Config.*</option><option value=\"restore\">Restore**</option></select><button type=\"submit\">Valid</button></form></td></tr></tbody></table>";
-const char HTTP_BODYI1[] PROGMEM = "</p><p style=\"line-height: 1.0; font-size: 10px;\">* All parameters in config.json file will be affected. <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted &amp; cleared.</p></div><div>&nbsp;</div></div></center></body></html>";
+const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style='background-color: lightblue;'>HTML Esp32 Dudu Tools</h1></header><div><p style='text-align: center;'>Use this page to access the ESP32 embedded tools.<br />You are here becausethere is no index.html uploaded.</p><div style='text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);'><p style='line-height: .1;'><em><strong>Configuration facilities</strong></em><br /><table width='500' cellpadding='0'><tr><td>- Files explorer of SPI Flash File System</td><td align='right'><button style='width: 60%;'onClick=\"window.location=' /explorer';\">Explorer</button><buttonstyle='width: 28%;' onClick=\"window.location='/ls';\">Ls</button></td></tr><tr><td>- Show configuration file used at startup</td><td align='right'><button style='width: 90%;'onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files to SPI Flash File System</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/update';\">Update</button></td></tr></table>";
+const char HTTP_BODYI0[] PROGMEM = "<p style='line-height: .1;'><em><strong>System facilities</strong></em></p><table width='400' cellpadding='0'><tbody><tr><tdstyle='line-height: 1.1; font-size: 10px;'>Several system commands are available:<br />-<b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> recordthe current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and removefiles to E.F.S**</td></tr></tbody></table><table width='500' cellpadding='0'><tbody><tr><td>- Select one command in the list :</td><td><form action='post' method='post'><select name='cmd'><option value='none'></option><option value='restart'>Restart</option><option value='save-config'>Save Config.*</option><option value='restore'>Restore**</option></select><button type='submit'>Valid</button></form></td></tr></tbody></table>";
+const char HTTP_BODYI1[] PROGMEM = "</p><p style='line-height: 1.0; font-size: 10px;'>* All parameters in config.json file will be affected.<br>**The login/password and all flag will be set to default. Embedded File System will be reformatted&amp; cleared.</p></div><div>&nbsp;</div></div></center></body></html>";
+//const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style=\"background-color: lightblue;\">HTML Esp32 Dudu Tools</h1></header>\n<div><p style=\"text-align: center;\">Use this page to access the ESP32 embedded tools.<br />You are here because there is no index.html uploaded.</p><div style=\"text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);\"><p style=\"line-height: .1;\"><em><strong>Configuration facilities</strong></em><br /><table width=\"500\" cellpadding=\"0\"><tr><td>- Files explorer of SPI Flash File System</td><td align=\"right\"><button  style=\"width: 60%;\" onClick=\"window.location='/explorer';\">Explorer</button><button  style=\"width: 28%;\" onClick=\"window.location='/ls';\">Ls</button></td></tr> <tr><td>- Show configuration file used at startup</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload files to SPI Flash File System</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align=\"right\"><button style=\"width: 90%;\" onClick=\"window.location='/update';\">Update</button></td></tr></table>";
+//const char HTTP_BODYI0[] PROGMEM = "<p style=\"line-height: .1;\"><em><strong>System facilities</strong></em></p><table width=\"400\" cellpadding=\"0\"><tbody><tr><tdstyle=\"line-height: 1.1; font-size: 10px;\">Several system commands are available:<br />- <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove files to E.F.S**</td></tr></tbody></table><table width=\"500\" cellpadding=\"0\"><tbody><tr><td>- Select one command in the list :</td><td><form action=\"post\" method=\"post\"><select name=\"cmd\"><option value=\"none\"></option><option value=\"restart\">Restart</option><option value=\"save-config\">Save Config.*</option><option value=\"restore\">Restore**</option></select><button type=\"submit\">Valid</button></form></td></tr></tbody></table>";
+//const char HTTP_BODYI1[] PROGMEM = "</p><p style=\"line-height: 1.0; font-size: 10px;\">* All parameters in config.json file will be affected. <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted &amp; cleared.</p></div><div>&nbsp;</div></div></center></body></html>";
 
 // constant HTML update if not defined in FS
-const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>HTML Update OTA</h1></header><div><p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br/>You can use the binary format (firmware.bin) files.</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin' name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p> <script>$('form').submit(function(e){e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form); $.ajax({url: '/update',type: 'POST',data: data,contentType: false,processData:false,xhr: function() {var xhr=new window.XMLHttpRequest(); xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded/evt.total; $('#prg').html('progress: '+Math.round(per*100)+'%');}}, false);return  xhr;},success:function(d, s){console.log('success!')},error: function (a, b, c) {}});});</script><a class='button' href='/''>Back</a></center></body></ntml>";
-const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) { var r = confirm('Are you sure you want to '+pa+' '+el+' ?');if (r == true) { window.location='/explorer?cmd='+pa+'&file='+el; } }</script>\n<center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table  width='500' cellpadding='0'>\n<tr><th>File Name</th><th>Size</th><th>Action</th></tr>\n";
+const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>HTML Update OTA</h1></header><div><p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br />You can use thebinary format (firmware.bin) files.</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin'name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p><script>$('form').submit(function (e) {e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form);$.ajax({url: '/update', type: 'POST', data: data, contentType: false, processData: false, xhr: function () {var xhr = new window.XMLHttpRequest();xhr.upload.addEventListener('progress', function (evt) {if (evt.lengthComputable) {var per = evt.loaded / evt.total;$('#prg').html('progress: ' + Math.round(per * 100) + '%');}}, false);return xhr;}, success: function (d, s) {console.log('success!')}, error: function (a, b, c) {}});});</script><a class='button' href='/'>Back</a></center></body></ntml>";
+const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table width='500' cellpadding='0'><tr><th>File Name</th><th>Size</th><th>Action</th></tr>";
+//const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>HTML Update OTA</h1></header><div><p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br/>You can use the binary format (firmware.bin) files.</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin' name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p> <script>$('form').submit(function(e){e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form); $.ajax({url: '/update',type: 'POST',data: data,contentType: false,processData:false,xhr: function() {var xhr=new window.XMLHttpRequest(); xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded/evt.total; $('#prg').html('progress: '+Math.round(per*100)+'%');}}, false);return  xhr;},success:function(d, s){console.log('success!')},error: function (a, b, c) {}});});</script><a class='button' href='/''>Back</a></center></body></ntml>";
+//const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) { var r = confirm('Are you sure you want to '+pa+' '+el+' ?');if (r == true) { window.location='/explorer?cmd='+pa+'&file='+el; } }</script>\n<center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table  width='500' cellpadding='0'>\n<tr><th>File Name</th><th>Size</th><th>Action</th></tr>\n";
 
-
+// Instance 
 FrameWeb* myFrameWeb;
 
 FrameWeb::FrameWeb(){
@@ -228,17 +235,17 @@ void FrameWeb::startOTA() {
 
 // Show HTML Arguments and Header (use for debugging)
 void FrameWeb::showAH() {
-	String m = "Nbr of args:";	m+=server.args();	m+="\n\r";
+	String m = "[F]Nbr of args:";	m+=server.args();	m+="\n\r";
 	for(int i = 0; i < server.args(); i++) {
 		m+="Arg["+(String)i+"]=";		m+=server.argName(i)+":";	m+=server.arg(i)+"\n\r";
 	}
 	Serial.print(m);
-	String mm = "Nbr of heders:";	mm+=server.headers();	mm+="\n\r";
+	String mm = "[F]Nbr of heders:";	mm+=server.headers();	mm+="\n\r";
 	for(int i = 0; i < server.headers(); i++) {
-		mm+="Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n\r";
+		mm+="[F]Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n\r";
 	}
 	Serial.print(mm);
-	Serial.print("hostHeader:");Serial.println(server.hostHeader());
+	Serial.print("[F]hostHeader:");Serial.println(server.hostHeader());
 }
 
 // Return Wifi Status code as String
@@ -299,7 +306,7 @@ String FrameWeb::simpleFirmware(){
 
 // Handle Web server ----- used in startWebServer -------------------------------------------------------------------
 bool FrameWeb::handleFileRead(String path) {               // send the right file to the client (if it exists)
-  FDBXLN("handleFileRead: " + path);
+  FDBXLN("handleFileRead path:" + path);
   if (path.endsWith("/")) path += "index.html";            // If a folder is requested, send the index file
   String contentType = getContentType(path);               // Get the MIME type
   String pathWithGz = path + ".gz";
@@ -311,9 +318,9 @@ bool FrameWeb::handleFileRead(String path) {               // send the right fil
     file.close();                                          // Close the file again
     FDBXLN("\tSent file: " + path);
     return true;
-  } else {
+  } else {                                                 // Otherwise build answer locally
     if (config.UseToolsLocal) {
-      if (path.endsWith("/index.html")){                     // Default index.html page
+      if (path.endsWith("/index.html")){                   // For default index.html page after authentification
         if (!server.authenticate(config.LoginName, config.LoginPassword)) {
            server.requestAuthentication();
            return true;
@@ -321,7 +328,7 @@ bool FrameWeb::handleFileRead(String path) {               // send the right fil
         server.send(200, "text/html", simpleIndex() );     // If not upload.html in FS send light
         return true;
       }
-      if (path.endsWith("/update")){  // return index page which is stored in serverIndex
+      if (path.endsWith("/update")){                       // return index page which is stored in serverIndex
         if (!server.authenticate(config.LoginName, config.LoginPassword)) {
           server.requestAuthentication();
           return true;
@@ -394,6 +401,7 @@ void FrameWeb::handleNotFound(){ // if the requested file or page doesn't exist,
     server.send(404, "text/plain", textNotFound());
   }
 }
+
 //  Directory list
 void FrameWeb::explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   File root = fs.open(dirname);
@@ -445,11 +453,7 @@ void FrameWeb::upload_get(){
 void FrameWeb::upload_post(){
   server.send(200, "text/plain", "");
 }
-void FrameWeb::notfound(){
-  if (!handleFileRead(server.uri())) {
-    server.send(404, "text/plain", "FileNotFound");
-  }
-}
+
 void FrameWeb::exploreWeb(){
 #ifndef DEBUG_FRAME
   showAH();
@@ -499,87 +503,39 @@ void FrameWeb::update2(){
 void FrameWeb::startWebServer(){
   // POST
   server.on("/post",  HTTP_POST, []() {        // If a POST request is sent to the /edit.html address,
-    std::bind(&FrameWeb::handlePost, myFrameWeb);
-    //handlePost();
+     myFrameWeb->handlePost();
   });
   // Simple command wihout pwd
   server.on("/ls", [](){                      // Get list of file in FS
-    std::bind(&FrameWeb::sendLs, myFrameWeb);
-    //String ls;
-    //listDir(ls, SPIFFS, "/", 0);
-    //server.send(200, "text/plain", ls);
+    myFrameWeb->sendLs();
   });
+
   /* handling uploading firmware file */
   server.on("/update", HTTP_POST, [](){
-     std::bind(&FrameWeb::update, myFrameWeb);
-    // server.sendHeader("Connection", "close");
-    // server.send(200, "text/plain", (Update.hasError())?"FAIL":"OK");
-    // ESP.restart();
+    myFrameWeb->update();
   },[](){
-    std::bind(&FrameWeb::update2, myFrameWeb);
-    // HTTPUpload& upload = server.upload();
-    // if(upload.status == UPLOAD_FILE_START){
-    //   Serial.printf("Update: %s\n\r", upload.filename.c_str());
-    //   if(!Update.begin(UPDATE_SIZE_UNKNOWN)){ //start with max available size
-    //     Update.printError(Serial);
-    //   }
-    // } else if(upload.status == UPLOAD_FILE_WRITE){
-    //   /* flashing firmware to ESP*/
-    //   if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
-    //     Update.printError(Serial);
-    //   }
-    // } else if(upload.status == UPLOAD_FILE_END){
-    //   if(Update.end(true)){ //true to set the size to the current progress
-    //     Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
-    //   } else {
-    //     Update.printError(Serial);
-    //   }
-    // }
+    myFrameWeb->update2();
   });
+
   // handling upload file
   server.on("/upload", HTTP_GET, []() {        // Upload
-    std::bind(&FrameWeb::upload_get, myFrameWeb);
-    // if (!server.authenticate(config.LoginName, config.LoginPassword)) {
-    //   return server.requestAuthentication();
-    // }
-    // if (!handleFileRead("/upload.html")) {    // upload.html exist on FS
-    //   if (config.UseToolsLocal) server.send(200, "text/html", simpleUpload() ); // If not upload.html in FS send lightweight
-    //   else server.send(404, "text/plain", "FileNotFound");
-    // }
+    myFrameWeb->upload_get();
   });
+
   server.on("/upload", HTTP_POST, []() {       // Back after selection
-     std::bind(&FrameWeb::upload_post, myFrameWeb);
-    //server.send(200, "text/plain", "");
-    }, 
-    //handleFileUpload
-    std::bind(&FrameWeb::handleFileUpload, myFrameWeb)
-    );
+    myFrameWeb->upload_post();
+    },[](){
+     myFrameWeb->handleFileUpload();
+     });
+
   server.onNotFound([]() {
-    std::bind(&FrameWeb::notfound, myFrameWeb);
-    // if (!handleFileRead(server.uri())) {
-    //   server.send(404, "text/plain", "FileNotFound");
-    // }
+    myFrameWeb->handleNotFound();
   });
+
   server.on("/explorer", [](){                  // Get list of file in FS
-    std::bind(&FrameWeb::exploreWeb, myFrameWeb);
-  // #ifndef DEBUG_FRAME
-  //   showAH();
-  // #endif
-  //   if (!server.authenticate(config.LoginName, config.LoginPassword)) return server.requestAuthentication();
-  //   if (server.arg("cmd")=="remove") {
-  //     if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
-  //   }
-  //   if (server.arg("cmd")=="download") {
-  //     if (server.arg("file") != "" ) download(server.arg("file"));
-  //   }
-  //   // Return list of files in table
-  //   String msg = FPSTR(HTTP_HEADAL);
-  //   msg += FPSTR(HTTP_EXPL0);
-  //   explorer(msg, SPIFFS, "/", 0);
-  //   msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
-  //   server.send(200, "text/html", msg);
+    myFrameWeb->exploreWeb();
   });
-  server.onNotFound(std::bind(&FrameWeb::notfound, myFrameWeb)/*handleNotFound*/);         // Not found page
+
   server.begin();
 }
 

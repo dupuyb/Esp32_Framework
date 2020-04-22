@@ -17,7 +17,7 @@
 #include <WiFi.h>
 #include <DNSServer.h>
 #include <WebServer.h>
- //https://github.com/tzapu/WiFiManager  NOT ASP32 full compatible.
+ //https://github.com/tzapu/WiFiManager  NOT ESP32 full compatible.
 #include <WiFiManager.h>
 // WebSocket
 #include <WebSocketsServer.h>
@@ -35,7 +35,7 @@
    #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.2.1"
+#define FrameVersion "1.2.3"
 
 // Default value in loadConfiguration function
 struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)
@@ -47,15 +47,17 @@ struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,
   bool UseToolsLocal;      // True if simpleUpload must be called in case of not Upload.html
 };
 
-//  configModeCallback callback when entering into AP mode
+//---- These callback functions must be defined extrenally ------
+// configModeCallback callback when entering into AP mode
 void configModeCallback (WiFiManager *myWiFiManager) ;
 
-//callback notifying us of the need to save config
+// callback notifying us of the need to save config
 void saveConfigCallback () ;
 
-//callback
+// callback for web socket event
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
+// Frame Web master class
 class FrameWeb {
 public:
   FrameWeb();
@@ -87,13 +89,13 @@ public:
   void sendLs();
   void upload_get();
   void upload_post();
-  void notfound();
+
   void exploreWeb();
   void update();
   void update2();
   void startWebServer();
   void startMDNS();
-  // 
+  
   void setup( void (*func)(WiFiManager* myWiFiManager)=NULL, const char* hostname=NULL);
   void loop();
 
@@ -102,7 +104,7 @@ public:
   const char *filename = "/config.json"; // file configuration
   bool RebootAsap      = false;   // Error OTA
   bool RestoreAsap     = false;   // Reset to factory settings
-  Config config;           // Struct Config
+  Config config;                  // Struct Config
   File fsUploadFile;              // File variable to temporarily store the received file
 
   //Init JSON ArduinoJson 6

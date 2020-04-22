@@ -559,9 +559,11 @@ void startWebServer(){
       else server.send(404, "text/plain", "FileNotFound");
     }
   });
+  
   server.on("/upload", HTTP_POST, []() {       // Back after selection
     server.send(200, "text/plain", "");
   }, handleFileUpload);
+
   server.onNotFound([]() {
     if (!handleFileRead(server.uri())) {
       server.send(404, "text/plain", "FileNotFound");

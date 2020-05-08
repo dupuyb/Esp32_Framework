@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-# DEPRECATED use extra_scropt.py now
-
 import sys, getopt, datetime, pathlib, re
 from tempfile import mkstemp
 from shutil import move
@@ -12,17 +10,31 @@ REGS="%%"
 REGE="%%"
 
 def help(opt):
-    print ('FrameWeb.py  -f <find_file> extract '+REGS+'__'+REGE+' pattern from file.')
-    print ('             -i <inputfile> [-o <outputfile>] compress htnl to cpp')
-    print ('             -i <inputfile> -b <outputfile> build a new cpp')
+    print ('extra_scropt.py  -f <find_file> extract '+REGS+'__'+REGE+' pattern from file.')
+    print ('                 -i <inputfile> [-o <outputfile>] compress htnl to cpp')
+    print ('                 -i <inputfile> -b <outputfile> build a new cpp')
     sys.exit(opt)
 
-def replace(source_file_path, pattern, substring):
+def replace(source_file_path, code):
     fh, target_file_path = mkstemp()
+    cpok=True
+    error=True
     with open(target_file_path, 'w') as target_file:
         with open(source_file_path, 'r') as source_file:
             for line in source_file:
-                target_file.write(line.replace(pattern, substring))
+                if line.startswith('//---- Start Generated'):
+                    cpok = False
+                    for x in range(0, len(code)):
+                        target_file.write(str(code[x]+"\n"))
+                if cpok:
+                    target_file.write(line)
+                if line.startswith('//---- End Generated'):
+                    if cpok == False:
+                        error=False
+                    cpok=True
+    if error:
+        print('>>> Error into replace HTML Generated file :'+ str(source_file))
+        sys.exit(5)
     remove(source_file_path)
     move(target_file_path, source_file_path)
 
@@ -104,8 +116,9 @@ def conpressHtml(inputfile):
     try:
         fn = open(inputfile,"r")
     except IOError:
+        print('file not found:',inputfile)
         help(3)
-    ret.append("//-------- Generated from "+ inputfile +" file --- "+ str(datetime.date.today()))
+    ret.append("//---- Start Generated from "+ inputfile +" file --- "+ str(datetime.datetime.now()) )
     sub_str = "<!-- const char HTTP_"
     espline = ""
     mode = 0
@@ -120,7 +133,7 @@ def conpressHtml(inputfile):
             else:
                 espline +='";'
                 ret.append(espline)
-                ret.append("//------------------- len :"+str(len(espline)))
+                ret.append("//---- len : "+str(len(espline))+" bytes")
                 espline=""
                 mode=0
         if (cont[i].strip().find(sub_str) == 0):
@@ -132,7 +145,8 @@ def conpressHtml(inputfile):
     if (mode==1):
         espline +='";'
         ret.append(espline)
-        ret.append("//------------------- len :"+str(len(espline)))
+        ret.append("//---- len : "+str(len(espline))+" bytes")
+    ret.append("//---- End Generated ")
     # close all files 
     fn.close() 
     return ret
@@ -187,3 +201,24 @@ def selesctApp(argv):
 
 if __name__ == "__main__":
     selesctApp(sys.argv[1:])
+    sys.exit(1)
+
+# code here executed when called from platformIO
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+#Import("env")
+config = configparser.ConfigParser()
+config.read("platformio.ini")
+print(config)
+inputfile = config.get("env:esp32dev", "custom_in_html")
+outputfile = config.get("env:esp32dev", "custom_out_h")
+print('---> EXTRACT HTML FILE :'+inputfile+'--------------------')
+tg, ln = findPattern(inputfile)
+print ('Key list   :',tg)
+print ('Number Key :',len(tg))
+print ('Max Key len:',ln)
+code = conpressHtml(inputfile)
+replace(outputfile, code )
+print('---> END OF HTML FILE :'+outputfile+'--------------------')

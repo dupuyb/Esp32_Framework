@@ -21,12 +21,9 @@
             <h1 style='background-color:lightblue'>HTML Uploader</h1>
         </header>
         <div>
-            <p style='text-align: center'>
-                Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p>
+            <p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p>
             <form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'>
-                <input type='file' name='Choose file'
-                    accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button'
-                    type='submit' value='Upload' name='submit'></form>
+                <input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form>
         </div><a class='button' href='/''>Back</a></center></body></html>
 
 
@@ -35,19 +32,19 @@
 <body>
     <center>
         <header>
-            <h1 style='background-color: lightblue;'>HTML Esp32 Dudu Tools</h1>
+            <h1 style='background-color: lightblue;'>= HTML Esp32 Dudu Tools =</h1>
         </header>
         <div>
-            <p style='text-align: center;'>Use this page to access the ESP32 embedded tools.<br />You are here because
-                there is no index.html uploaded.</p>
+            <p style='text-align: center;'>Use this page to access the ESP32 embedded tools.<br/>You are here because there is no index.html uploaded.</p>
             <div style='text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);'>
                 <p style='line-height: .1;'><em><strong>Configuration facilities</strong></em><br />
                     <table width='500' cellpadding='0'>
                         <tr>
                             <td>- Files explorer of SPI Flash File System</td>
-                            <td align='right'><button style='width: 60%;'
-                                    onClick="window.location=' /explorer';">Explorer</button><button
-                style='width: 28%;' onClick="window.location='/ls';">Ls</button></td>
+                            <td align='right'>
+                                <button style='width: 60%;' onClick="window.location=' /explorer';">Explorer</button>
+                                <button style='width: 30%;' onClick="window.location='/ls';">Ls</button>
+                            </td>
             </tr>
             <tr>
                 <td>- Show configuration file used at startup</td>
@@ -70,10 +67,10 @@
             <table width='400' cellpadding='0'>
                 <tbody>
                     <tr>
-                        <tdstyle='line-height: 1.1; font-size: 10px;'>Several system commands are available:<br />-
-                            <b>Restart</b> launch an immediate reboot on the Esp32.<br />- <b>Save Config.</b> record
-                            the current configuration to E.F.S.*<br />- <b>Restore</b> default parameters and remove
-                            files to E.F.S**</td>
+                        <tdstyle='line-height: 1.1; font-size: 10px;'>Several system commands are available:<br />
+                        - <b>Restart</b> launch an immediate reboot on the Esp32.<br />
+                        - <b>Save Config.</b> record the current configuration to E.F.S.*<br />
+                        - <b>Restore</b> default parameters and remove files to E.F.S**</td>
                     </tr>
                 </tbody>
             </table>
@@ -87,17 +84,18 @@
                                     <option value='restart'>Restart</option>
                                     <option value='save-config'>Save Config.*</option>
                                     <option value='restore'>Restore**</option>
-                                </select><button type='submit'>Valid</button></form>
+                                </select><button type='submit'>Valid</button>
+                            </form>
                         </td>
                     </tr>
                 </tbody>
             </table>
+          </p>
 
             <!-- const char HTTP_BODYI1[] PROGMEM = -->
-            </p>
+        
             <p style='line-height: 1.0; font-size: 10px;'>* All parameters in config.json file will be affected.
-                <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted
-                &amp; cleared.</p>
+                <br>**The login/password and all flag will be set to default. Embedded File System will be reformatted &amp; cleared.</p>
             </div>
             <div>&nbsp;</div>
             </div>
@@ -110,11 +108,10 @@
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
 <center>
     <header>
-        <h1 style='background-color: lightblue;'>HTML Update OTA</h1>
+        <h1 style='background-color: lightblue;'>Esp32 Update OTA</h1>
     </header>
     <div>
-        <p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br />You can use the
-            binary format (firmware.bin) files.</p>
+        <p style='text-align: center;'>Use this page to update the firmware over the air to ESP32.<br />You can use the binary format (firmware.bin) files.</p>
         <form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin'
                 name='update'><input type='submit' value='Update'></form>
         <div id='prg'>progress: 0%</div>

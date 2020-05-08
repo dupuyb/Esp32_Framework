@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #define DEBUG_FRAME   // Debug frame before header
-//#include "Frame.h"
 #include "FrameWeb.h"
 FrameWeb frame;
 

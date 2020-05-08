@@ -1,6 +1,10 @@
 #ifndef Frame_h
 #define Frame_h
 
+/*
+  This hesader is deprecated. Use FrameWeb.h and FrameWeb.cpp now
+*/
+
 // File FS SPI Flash File System
 #include "eth_phy/phy.h"
 #include <FS.h>

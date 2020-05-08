@@ -1,7 +1,7 @@
 #ifndef FRAMEWEB_H
 #define FRAMEWEB_H
 
-#include "Arduino.h"
+//#include "Arduino.h"
 
 // File FS SPI Flash File System
 #include "eth_phy/phy.h"
@@ -35,7 +35,7 @@
    #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.2.3"
+#define FrameVersion "1.2.4"
 
 // Default value in loadConfiguration function
 struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)
@@ -106,6 +106,7 @@ public:
   bool RestoreAsap     = false;   // Reset to factory settings
   Config config;                  // Struct Config
   File fsUploadFile;              // File variable to temporarily store the received file
+  String externalHtmlTools = "";
 
   //Init JSON ArduinoJson 6
   DynamicJsonDocument jsonBuffer = DynamicJsonDocument(500);

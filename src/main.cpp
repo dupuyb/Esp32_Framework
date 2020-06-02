@@ -4,6 +4,9 @@
 #include "FrameWeb.h"
 FrameWeb frame;
 
+/*
+ Main sample for FrameWeb 
+*/
 // Oled 128x32 on my i2c
 int cntOled = 0;
 #define pinSDA  23
@@ -80,37 +83,10 @@ String getDate(bool sh = false){
 long previousMillis  = 0;       // Use in loop
 
 // Web socket Use in FrameWeb for external command
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
-  Serial.printf("[%u] get Message: %s\r\n", num, payload);
-  switch(type) {
-    case WStype_DISCONNECTED:
-    break;
-    case WStype_CONNECTED:
-    {
-      IPAddress ip = frame.webSocket.remoteIP(num);
-      Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-    }
-    break;
-    case WStype_TEXT:
-    {
-      String _payload = String((char *) &payload[0]);
-      Serial.println(_payload);
-    }
-    break;
-    case WStype_BIN:
-    break;
-    default:
-    break;
-  }
-}
-//  configModeCallback callback when entering into AP mode
-void configModeCallback (WiFiManager *myWiFiManager) {
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {}
 
-}
 //callback notifying us of the need to save config
-void saveConfigCallback () {
-
-}
+void saveConfigCallback () {}
 
 // Force other host name and mac Addresses  // Set config or defaults
 // Addr 192.168.1.23
@@ -127,7 +103,7 @@ void forceNewMac() {
 }
 
 //  configModeCallback callback when entering into AP mode
-void myConfigModeCallback (WiFiManager *myWiFiManager) {
+void configModeCallback (WiFiManager *myWiFiManager) {
   // Clear OLED 
   OLEDC();
   u8g2.setFont(u8g2_font_7x14_tf);
@@ -151,7 +127,7 @@ void setup() {
   digitalWrite(EspLedBlue, HIGH);  // After 5 seconds blinking indicate WiFI is OK
   Serial.println("Start Frame.frame_setup()");
   // Start framework
-  frame.setup ( myConfigModeCallback );
+  frame.setup ();
   Serial.println("Server WEB started. V00.1");
     // Init time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); //init and get the time

@@ -1,8 +1,6 @@
 #include "FrameWeb.h"
 
-
-
-//---- Start Generated from src/FrameWeb.html file --- 2020-05-08 18:46:52.720698
+//---- Start Generated from src/FrameWeb.html file --- 2020-06-02 19:19:22.970988
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 153 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
@@ -18,7 +16,6 @@ const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax
 const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table width='500' cellpadding='0'><tr><th>File Name</th><th>Size</th><th>Action</th></tr>";
 //---- len : 397 bytes
 //---- End Generated 
-
 
 // Instance 
 FrameWeb* myFrameWeb;
@@ -153,7 +150,7 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
 }
 
 // Start WiFiManager
-void FrameWeb::startWifiManager(void (*func)(WiFiManager* myWiFiManager ) ) {
+void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ ) {
   WiFiManager wifiManager;
 #ifndef DEBUG_FRAME
   wifiManager.setDebugOutput(false);
@@ -199,11 +196,11 @@ void FrameWeb::startWifiManager(void (*func)(WiFiManager* myWiFiManager ) ) {
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  if (func==NULL) {
-    wifiManager.setAPCallback(configModeCallback);
-  } else {
-    wifiManager.setAPCallback(func);
-  }
+  //if (func==NULL) {
+  wifiManager.setAPCallback(configModeCallback);
+  //} else {
+  // wifiManager.setAPCallback(func);
+  //}
   //Recupere les identifiants   ssid et Mot de passe dans l'eprom  et essayes de se connecter
   //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
  // wifiManager.setConnectTimeout(60);
@@ -276,6 +273,28 @@ const char* FrameWeb::httpStatus(int err) {
   }
   String ret = "http_Code="+String(err);
   return ret.c_str();
+}
+
+const char*  FrameWeb::resetReason(int reason){
+  switch ( reason) {
+    case 1 : return "POWERON_RESET"; break;          /**<1, Vbat power on reset*/
+    case 3 : return "SW_RESET"; break;               /**<3, Software reset digital core*/
+    case 4 : return "OWDT_RESET"; break;             /**<4, Legacy watch dog reset digital core*/
+    case 5 : return "DEEPSLEEP_RESET"; break;        /**<5, Deep Sleep reset digital core*/
+    case 6 : return "SDIO_RESET"; break;             /**<6, Reset by SLC module, reset digital core*/
+    case 7 : return "TG0WDT_SYS_RESET"; break;       /**<7, Timer Group0 Watch dog reset digital core*/
+    case 8 : return "TG1WDT_SYS_RESET"; break;       /**<8, Timer Group1 Watch dog reset digital core*/
+    case 9 : return "RTCWDT_SYS_RESET"; break;       /**<9, RTC Watch dog Reset digital core*/
+    case 10 : return "INTRUSION_RESET"; break;       /**<10, Instrusion tested to reset CPU*/
+    case 11 : return "TGWDT_CPU_RESET"; break;       /**<11, Time Group reset CPU*/
+    case 12 : return "SW_CPU_RESET"; break;          /**<12, Software reset CPU*/
+    case 13 : return "RTCWDT_CPU_RESET"; break;      /**<13, RTC Watch dog Reset CPU*/
+    case 14 : return "EXT_CPU_RESET"; break;         /**<14, for APP CPU, reseted by PRO CPU*/
+    case 15 : return "RTCWDT_BROWN_OUT_RESET"; break;/**<15, Reset when the vdd voltage is not stable*/
+    case 16 : return "RTCWDT_RTC_RESET"; break;      /**<16, RTC Watch dog reset digital core and rtc module*/
+    default : return "NO_MEAN"; break;
+  }
+  return "No_Mean";
 }
 
 // Start webSocket
@@ -553,11 +572,11 @@ void FrameWeb::startMDNS() {
 }
 
 // Arduino core -------------------------------------------------------------
-void FrameWeb::setup( void (*func)(WiFiManager* myWiFiManager), const char* hostname) {
+void FrameWeb::setup( /*void (*func)(WiFiManager* myWiFiManager),*/ const char* hostname) {
   FDBXMF("FrameWeb::setup started version: %s\n\r", FrameVersion);
   startSPIFFS();                   // Start FS (list all contents)
   loadConfiguration(filename, config, hostname); // Read config file
-  startWifiManager(func);          // Start a Wi-Fi access point, and try to connect
+  startWifiManager();          // Start a Wi-Fi access point, and try to connect
   startOTA();                      // Start the OTA service
   startWebSocket();                // Start a WebSocket server
   startWebServer();                // Start a HTTP server with a file read handler and an upload handler
@@ -575,7 +594,7 @@ void FrameWeb::loop() {
     FDBXLN("Fromat SPIFS...");
     SPIFFS.format();
     WiFiManager wifiManager;
-    wifiManager.resetSettings(); // BUG the stored ssid no clear !!
+    wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
     ESP.restart();
   }
 }

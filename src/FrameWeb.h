@@ -1,8 +1,5 @@
 #ifndef FRAMEWEB_H
 #define FRAMEWEB_H
-
-//#include "Arduino.h"
-
 // File FS SPI Flash File System
 #include "eth_phy/phy.h"
 #include <FS.h>
@@ -70,11 +67,12 @@ public:
   String saveConfiguration(const char *filename, const Config &config);
   void startSPIFFS();
   void loadConfiguration(const char *filename, Config &config, const char* hname=NULL);
-  void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL );
+  void startWifiManager( /* void (*func)(WiFiManager* myWiFiManager ) = NULL*/ );
   void startOTA();
   void showAH();
   const char* wifiStatus(int err);
   const char* httpStatus(int err);
+  const char* resetReason(int reason);
   void startWebSocket();
   String simpleUpload();
   String simpleIndex();
@@ -96,7 +94,7 @@ public:
   void startWebServer();
   void startMDNS();
   
-  void setup( void (*func)(WiFiManager* myWiFiManager)=NULL, const char* hostname=NULL);
+  void setup( /*void (*func)(WiFiManager* myWiFiManager)=NULL,*/ const char* hostname=NULL);
   void loop();
 
   // variables Global
@@ -106,7 +104,7 @@ public:
   bool RestoreAsap     = false;   // Reset to factory settings
   Config config;                  // Struct Config
   File fsUploadFile;              // File variable to temporarily store the received file
-  String externalHtmlTools = "";
+  String externalHtmlTools = "";  // Html paragraph append on tools
 
   //Init JSON ArduinoJson 6
   DynamicJsonDocument jsonBuffer = DynamicJsonDocument(500);
@@ -116,5 +114,4 @@ public:
   WebSocketsServer webSocket = WebSocketsServer(81);
 
 };
-
 #endif 

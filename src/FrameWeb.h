@@ -29,7 +29,7 @@
 #else
   #define FDBX(...)
   #define FDBXLN(...)
-   #define FDBXMF(...)
+  #define FDBXMF(...)
 #endif
 
 #define FrameVersion "1.2.4"
@@ -101,14 +101,16 @@ public:
   const char *version = FrameVersion;
   const char *filename = "/config.json"; // file configuration
   bool RebootAsap      = false;   // Error OTA
-  bool RestoreAsap     = false;   // Reset to factory settings
+  bool RestoreAsap     = false;   // Reset to factory settings all was cleaned
+  bool ResetWifi       = false;   // only Wifi
   Config config;                  // Struct Config
   File fsUploadFile;              // File variable to temporarily store the received file
   String externalHtmlTools = "";  // Html paragraph append on tools
 
   //Init JSON ArduinoJson 6
   DynamicJsonDocument jsonBuffer = DynamicJsonDocument(500);
-
+  // Wifi
+  WiFiManager wifiManager;
   // services WEB
   WebServer server; //(80);
   WebSocketsServer webSocket = WebSocketsServer(81);

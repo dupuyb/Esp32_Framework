@@ -162,11 +162,11 @@ void loop() {
     previousMillis = millis();
     digitalWrite(EspLedBlue, !digitalRead(EspLedBlue));
 
-  getLocalTime(&timeinfo);
-  wifiLost=!wifiLost;
-  retJeedom=!retJeedom;
-  flame=!flame;
-  isValveClosed=!isValveClosed;
+    getLocalTime(&timeinfo);
+    wifiLost=!wifiLost;
+    retJeedom=!retJeedom;
+    flame=!flame;
+    isValveClosed=!isValveClosed;
 
     // Set Oled dsp
     OLEDC();

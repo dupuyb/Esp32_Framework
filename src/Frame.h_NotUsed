@@ -280,7 +280,8 @@ void startWifiManager(void (*func)(WiFiManager* myWiFiManager ) = NULL ) {
   //Recupere les identifiants   ssid et Mot de passe dans l'eprom  et essayes de se connecter
   //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
  // wifiManager.setConnectTimeout(60);
-  
+  WiFi.setHostname(config.HostName);
+
   if ( ! wifiManager.autoConnect( config.HostName) ) {
     FDBX("failed to connect and hit timeout.");
     delay(3000);

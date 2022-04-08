@@ -1,6 +1,6 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2021-03-10 21:02:45.923851
+//---- Start Generated from src/FrameWeb.html file --- 2022-03-05 17:53:16.861620
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 153 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
@@ -111,10 +111,10 @@ void FrameWeb::startSPIFFS() {
     FDBXLN(F("SPIFFS was not formatted."));
     SPIFFS.format();
     SPIFFS.begin();
-  }
-  // String ls;
-  // listDir(ls, SPIFFS, "/", 0);
-  // DBX(ls);
+  } 
+  //String ls;
+  //listDir(ls, SPIFFS, "/", 0);
+  //FDBXLN(ls);
 }
 
 void FrameWeb::loadConfiguration(const char *filename, Config &config, const char* hname) {
@@ -159,50 +159,21 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
     Serial.println("[F] WARNING: Mac address is not UNICAST!");
   }
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
- // esp_wifi_set_mac(ESP_IF_WIFI_STA, config.MacAddress); // esp32 code
- // wifi_set_macaddr(SOFTAP_IF, config.MacAddress); //8688 code
- // wifi_set_macaddr(STATION_IF,config.MacAddress); //8688 code
-  // esp_wifi_set_mac(ESP_IF_WIFI_STA, config.MacAddress); // esp32 code
 
-  // OTHER method update MAC in config file
-  /*
-  uint8_t mac[6];
-  if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
-  } else {
-    esp_wifi_get_mac(WIFI_IF_STA, mac);
-  }
-  Serial.printf("startWifiManager Heap:%u IP:%s MAC:%s \n\r",ESP.getFreeHeap(), WiFi.localIP().toString().c_str() , WiFi.macAddress().c_str()); 
-  if (memcmp ( mac , config.MacAddress, sizeof(config.MacAddress) ) != 0 ) {  
-    DBXMF("Mac address not correct HW(%s)", WiFi.macAddress().c_str());
-    for (int i=0; i<6; i++)
-      config.MacAddress[i] =  mac[i];
-    String ret = saveConfiguration(filename, config);
-    DBXLN(ret);
-  }
-*/
-  // set AP Static AP
-  // wifiManager.setAPStaticIPConfig(IPAddress(192,168,0,1), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
-  //set static ip
-  //   IPAddress _ip,_gw,_sn;
-  //   _ip.fromString(static_ip);
-  //   _gw.fromString(static_gw);
-  //   _sn.fromString(static_sn);
-  //   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
-  // ------------------------
   //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
-  if (config.ResetWifi)  wifiManager.resetSettings();
+  if (config.ResetWifi)  {
+    //!\ Deprecated
+    wifiManager.resetSettings();
+  }
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  //if (func==NULL) {
+
   wifiManager.setAPCallback(configModeCallback);
-  //} else {
-  // wifiManager.setAPCallback(func);
-  //}
-  //Recupere les identifiants   ssid et Mot de passe dans l'eprom  et essayes de se connecter
-  //Si pas de connexion possible , il demarre un nouveau point d'accés avec comme nom , celui definit dans la commande autoconnect ( ici : AutoconnectAP )
- // wifiManager.setConnectTimeout(60);
+
+  // Force host name
+  WiFi.setHostname(config.HostName);
+  
   if ( ! wifiManager.autoConnect( config.HostName) ) {
     FDBX("failed to connect and hit timeout.");
     delay(3000);

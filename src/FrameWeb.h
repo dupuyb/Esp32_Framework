@@ -1,7 +1,7 @@
 #ifndef FRAMEWEB_H
 #define FRAMEWEB_H
 // File FS SPI Flash File System
-#include "eth_phy/phy.h"
+// #include "eth_phy/phy.h"
 #include <FS.h>
 #include <SPIFFS.h>
 // JSon install ArduinoJson by Benoit Blanchon

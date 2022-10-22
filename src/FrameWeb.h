@@ -1,7 +1,6 @@
 #ifndef FRAMEWEB_H
 #define FRAMEWEB_H
 // File FS SPI Flash File System
-// #include "eth_phy/phy.h"
 #include <FS.h>
 #include <SPIFFS.h>
 // JSon install ArduinoJson by Benoit Blanchon
@@ -10,11 +9,9 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <Update.h>
-// WiFimanager need WiFi WebServer WiFimanager
 #include <WiFi.h>
 #include <DNSServer.h>
 #include <WebServer.h>
- //https://github.com/tzapu/WiFiManager  NOT ESP32 full compatible.
 #include <WiFiManager.h>
 // WebSocket
 #include <WebSocketsServer.h>

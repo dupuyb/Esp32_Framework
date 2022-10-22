@@ -1,6 +1,6 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2022-10-14 18:10:16.589955
+//---- Start Generated from src/FrameWeb.html file --- 2022-10-22 19:33:20.240677
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 153 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";

@@ -1,6 +1,6 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2022-10-23 17:48:01.978037
+//---- Start Generated from src/FrameWeb.html file --- 2023-01-14 08:59:04.309244
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 153 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
@@ -151,7 +151,7 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
 
 // Start WiFiManager
 void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ ) {
-#ifndef DEBUG_FRAME
+#ifndef DEBUG_FRAMEWEB
   wifiManager.setDebugOutput(false);
 #endif
   //! Warning MacAddress must be UNICAST frame that is bit 0 of first byte must be equals zero
@@ -162,7 +162,7 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
 
   //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
   if (config.ResetWifi)  {
-    //!\ Deprecated
+    //!\ Loggin and Passwd stay in Flash
     wifiManager.resetSettings();
   }
   //set config save notify callback
@@ -447,7 +447,7 @@ void FrameWeb::upload_post(){
 }
 
 void FrameWeb::exploreWeb(){
-#ifndef DEBUG_FRAME
+#ifndef DEBUG_FRAMEWEB
   showAH();
 #endif
   if (!server.authenticate(config.LoginName, config.LoginPassword)) 

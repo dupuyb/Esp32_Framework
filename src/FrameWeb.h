@@ -29,7 +29,7 @@
   #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.2.4"
+#define FrameVersion "1.2.5"
 
 // Default value in loadConfiguration function
 struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)
@@ -64,7 +64,7 @@ public:
   String saveConfiguration(const char *filename, const Config &config);
   void startSPIFFS();
   void loadConfiguration(const char *filename, Config &config, const char* hname=NULL);
-  void startWifiManager( /* void (*func)(WiFiManager* myWiFiManager ) = NULL*/ );
+  void startWifiManager();
   void startOTA();
   void showAH();
   const char* wifiStatus(int err);

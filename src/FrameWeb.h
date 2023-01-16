@@ -29,7 +29,7 @@
   #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.2.5"
+#define FrameVersion "1.2.6"
 
 // Default value in loadConfiguration function
 struct Config {            // First connexion LAN:esp32dudu IPAddress(192,168,0,1)

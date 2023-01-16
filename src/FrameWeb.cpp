@@ -1,6 +1,6 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2023-01-14 08:59:04.309244
+//---- Start Generated from src/FrameWeb.html file --- 2023-01-16 18:40:23.542358
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>HTML ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 153 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>HTML Uploader</h1></header><div><p style='text-align: center'>Use this page to upload new files to the ESP32.<br />You can use compressed (.gz) files.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
@@ -112,6 +112,7 @@ void FrameWeb::startSPIFFS() {
     SPIFFS.format();
     SPIFFS.begin();
   } 
+  initSetupState = initSetupState | (1<<0);
   //String ls;
   //listDir(ls, SPIFFS, "/", 0);
   //FDBXLN(ls);
@@ -146,6 +147,8 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
     FDBXLN(F("Error config file reading."));
     String ret = saveConfiguration(filename, config);
     FDBXLN(ret);
+  } else {
+    initSetupState = initSetupState | (1<<2);
   }
 }
 
@@ -186,6 +189,8 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); FDBX(".");
   }
+  if (WiFi.status() == WL_CONNECTED)
+    initSetupState = initSetupState | (1<<2);
 }
 
 // Start OverTheAir firmware uppload
@@ -198,6 +203,7 @@ void FrameWeb::startOTA() {
   // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
   ArduinoOTA.begin();
+  initSetupState = initSetupState | (1<<3);
 }
 
 // Show HTML Arguments and Header (use for debugging)
@@ -271,6 +277,7 @@ const char*  FrameWeb::resetReason(int reason){
 void FrameWeb::startWebSocket() {
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
+  initSetupState = initSetupState | (1<<4);
 }
 
 String FrameWeb::simpleUpload(){
@@ -452,11 +459,11 @@ void FrameWeb::exploreWeb(){
 #endif
   if (!server.authenticate(config.LoginName, config.LoginPassword)) 
     return server.requestAuthentication();
-  if (server.arg("cmd")=="remove") {
-    if (server.arg("file") != "" ) SPIFFS.remove(server.arg("file"));
+  if (server.arg("cmd")=="remove") { 
+    if (server.arg("file") != "" ) SPIFFS.remove("/"+server.arg("file"));
   }
   if (server.arg("cmd")=="download") {
-    if (server.arg("file") != "" ) download(server.arg("file"));
+    if (server.arg("file") != "" ) download("/"+server.arg("file"));
   }
   // Return list of files in table
   String msg = FPSTR(HTTP_HEADAL);
@@ -529,6 +536,7 @@ void FrameWeb::startWebServer(){
   });
 
   server.begin();
+  initSetupState = initSetupState | (1<<5);
 }
 
 // Start MDNS
@@ -541,6 +549,7 @@ void FrameWeb::startMDNS() {
   MDNS.addService("http",  "tcp", 80);
   MDNS.addService("ws",    "tcp", 81);
   MDNS.addService("esp32", "tcp", 8888); // Announce esp32 service port 8888 TCP
+  initSetupState = initSetupState | (1<<6);
 }
 
 // Arduino core -------------------------------------------------------------

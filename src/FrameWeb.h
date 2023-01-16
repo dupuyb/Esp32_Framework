@@ -91,7 +91,7 @@ public:
   void startWebServer();
   void startMDNS();
   
-  void setup( /*void (*func)(WiFiManager* myWiFiManager)=NULL,*/ const char* hostname=NULL);
+  void setup(const char* hostname=NULL);
   void loop();
 
   // variables Global
@@ -103,6 +103,15 @@ public:
   Config config;                  // Struct Config
   File fsUploadFile;              // File variable to temporarily store the received file
   String externalHtmlTools = "";  // Html paragraph append on tools
+  uint8_t initSetupState   = 0 ;  // Show binary stat for each Service 1 is OK 0 is not ok.   
+                                  // 1<<0 = startSPIFFS
+                                  // 1<<1 = loadConfiguration
+                                  // 1<<2 = startWifiManager
+                                  // 1<<3 = startOTA
+                                  // 1<<4 = startWebSocket
+                                  // 1<<5 = startWebServer
+                                  // 1<<6 = startMDNS
+   
 
   //Init JSON ArduinoJson 6
   DynamicJsonDocument jsonBuffer = DynamicJsonDocument(500);

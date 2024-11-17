@@ -1,11 +1,14 @@
 #include <Arduino.h>
-#define DEBUG_FRAME   // Debug frame before header
+//#define DEBUG_FRAMEWEB   // Debug frameweb
 #include "FrameWeb.h"
 FrameWeb frame;
 
-/*
- Main sample for FrameWeb 
-*/
+// Main sample for FrameWeb 
+#define EspLedBlue 2
+long previousMillis  = 0;       // Use in loop
+byte new_mac[6] = {0x00,0xAA,0xAA,0x99,0xFF,0xCC}; // TEST 
+char cmd;
+
 // Time facilities
 const long gmtOffset_sec     = 3600;
 const int daylightOffset_sec = 3600;
@@ -31,18 +34,14 @@ String getDate(bool sh = false){
   return String(temp);
 }
 
-#define EspLedBlue 2
-long previousMillis  = 0;       // Use in loop
-
 // Web socket Use in FrameWeb for external command
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {}
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {}
 
-// Force other host name and mac Addresses  // Set config or defaults
-// Addr 192.168.1.23
-byte new_mac[6] = {0x00,0xAA,0xAA,0x99,0xFF,0xCC}; // TEST 
+// Force other host name and mac Addresses  
+// Set config or defaults
 void forceNewMac() {
   strlcpy(frame.config.HostName, "esp32dudu",sizeof(frame.config.HostName));
   for (int i=0; i<6; i++)
@@ -55,47 +54,44 @@ void forceNewMac() {
 }
 
 //  configModeCallback callback when entering into AP mode
-void configModeCallback (WiFiManager *myWiFiManager) {
-
-}
+void configModeCallback (WiFiManager *myWiFiManager) {}
 
 // https://github.com/zhouhan0126/WIFIMANAGER-ESP32
 void setup() { 
   Serial.begin(115200);
+  #ifdef DEBUG_FRAMEWEB
   Serial.println("Start Frame.Setup()");
+  #endif
   // Set pin mode
   pinMode(EspLedBlue, OUTPUT);     // Led is BLUE at statup
   digitalWrite(EspLedBlue, HIGH);  // After 5 seconds blinking indicate WiFI is OK
-  Serial.println("Start Frame.frame_setup()");
   // Start framework
   frame.setup ();
-  Serial.println("Server WEB started. V00.1");
     // Init time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer); //init and get the time
   // Start
   getLocalTime(&timeinfo);
+  #ifdef DEBUG_FRAMEWEB
+  Serial.println("Server WEB started.");
+  #endif
 }
  
 // Main loop -----------------------------------------------------------------
-bool wifiLost;
-int count = 0;
-char cmd;
 void loop() {
+  #ifdef DEBUG_FRAMEWEB
     // Get Serial commands
 	while (Serial.available() > 0) {
 	  uint8_t c = (uint8_t)Serial.read();
 	  if (c != 13 && c != 10 ) {
       cmd = c;
-    } else {
-      if (c==13) {
-        if (cmd=='h') { Serial.println(); Serial.println("- Help info:\n\r r=reboot i=myip d=debug m=MAC");}
-			  else if (cmd=='r') { ESP.restart(); }
-        else if (cmd=='i') { Serial.printf("Heap:%u IP:%s MAC:%s \n\r",ESP.getFreeHeap(), WiFi.localIP().toString().c_str() , WiFi.macAddress().c_str()); }
-        else if (cmd=='m') { Serial.println("Mode config feilds (Mac, Host,...)."); forceNewMac(); cmd=' ';}
-        else { Serial.printf("Stop serial: %s \n\r",FrameVersion); }
-      }
+      if (cmd=='h') { Serial.println("\n\t- Help info:\n\r r=reboot i=show info. f=force MAC(00-AA-AA-99-FF-CC)");}
+		  else if (cmd=='r') { ESP.restart(); }
+      else if (cmd=='i') { Serial.printf("Heap:%u Mac:%s IP:%s Version:%s\n\r",ESP.getFreeHeap(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),FrameVersion );}
+      else if (cmd=='f') { Serial.println("Mode config feilds (Mac, Host,...)."); forceNewMac();}
+      cmd = ' ';
 		}
   }
+  #endif
   // Call frame loop
   frame.loop();
   // Is alive

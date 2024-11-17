@@ -111,15 +111,12 @@ public:
                                   // 1<<4 = startWebSocket
                                   // 1<<5 = startWebServer
                                   // 1<<6 = startMDNS
-   
-
-  //Init JSON ArduinoJson 6
-  DynamicJsonDocument jsonBuffer = DynamicJsonDocument(500);
+  //Init JSON ArduinoJson 7
+  JsonDocument jsonBuffer = JsonDocument();
   // Wifi
   WiFiManager wifiManager;
   // services WEB
   WebServer server; //(80);
   WebSocketsServer webSocket = WebSocketsServer(81);
-
 };
 #endif 

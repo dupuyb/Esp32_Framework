@@ -1,6 +1,6 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2024-11-17 15:13:06.492867
+//---- Start Generated from src/FrameWeb.html file --- 2024-12-01 16:44:37.691412
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 148 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>ESP32 Uploader</h1></header><div><p style='text-align: center'>Transfer a file to the SPIFFS filesystem.<br />Gzip file is supported.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";

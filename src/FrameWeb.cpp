@@ -1,8 +1,18 @@
 #include "FrameWeb.h"
 
-//---- Start Generated from src/FrameWeb.html file --- 2024-12-01 16:44:37.691412
-const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>ESP32 Dudu</title><meta content='width=device-width' name='viewport'></head>";
-//---- len : 148 bytes
+/**
+ * @file FrameWeb.cpp
+ * @brief Implementation of the ESP32 Web Framework
+ * 
+ * This file contains the complete implementation of the web system for ESP32,
+ * including WiFi management, HTTP server, OTA and WebSocket handling.
+ */
+
+// ============ Pre-generated HTML (generated from FrameWeb.html) ============
+// These character strings PROGMEM are stored in Flash to save RAM
+//---- Start Generated from src/FrameWeb.html file --- 2026-03-10 11:40:12.864140
+const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>ESP32</title><meta content='width=device-width' name='viewport'></head>";
+//---- len : 143 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>ESP32 Uploader</h1></header><div><p style='text-align: center'>Transfer a file to the SPIFFS filesystem.<br />Gzip file is supported.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
 //---- len : 569 bytes
 const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style='background-color: lightblue;'>ESP32 Dudu Tools</h1></header><div><p style='text-align: center;'>This message is displayed because the index.html file was not found.</p><div style='text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);'><p style='line-height: .1;'><em><strong>Configuration facilities:</strong></em><br /><table width='500' cellpadding='0'><tr><td>- Files explorer of the Embedded File System</td><td align='right'><button style='width: 60%;' onClick=\"window.location=' /explorer';\">Explorer</button><button style='width: 30%;' onClick=\"window.location='/ls';\">Ls</button></td></tr><tr><td>- Show configuration file used at startup</td><td align='right'><button style='width: 90%;'onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload file to Embedded File System</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/update';\">Update</button></td></tr></table>";
@@ -17,15 +27,36 @@ const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confir
 //---- len : 397 bytes
 //---- End Generated 
 
-// Instance 
+// Global framework instance (used for callbacks)
 FrameWeb* myFrameWeb;
 
+/**
+ * @brief Constructor of the FrameWeb class
+ */
 FrameWeb::FrameWeb(){
   myFrameWeb = this;
 }
+
+/**
+ * @brief Destructor of the FrameWeb class
+ */
 FrameWeb::~FrameWeb(){
+  webSocket.close();
+  server.close();
+  wifiManager.stopWebPortal();
 }
 
+/**
+ * @brief Destructor of the FrameWeb class
+ */
+
+/**
+ * @brief Convert current configuration to JSON format
+ * @return String JSON string containing all configuration parameters
+ * 
+ * Creates a JSON document from the current Config struct.
+ * Useful for saving or displaying configuration.
+ */
 String FrameWeb::JsonConfig() {
   String configjson;
   // ArduinoJson 7
@@ -44,6 +75,11 @@ String FrameWeb::JsonConfig() {
   return configjson;
 }
 
+/**
+ * @brief Format size in bytes to human-readable units (B, KB, MB)
+ * @param bytes Size in bytes
+ * @return String Formatted size (ex: "1.5MB", "256KB", "512B")
+ */
 String FrameWeb::formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
   if (bytes < 1024) {
     return String(bytes) + "B";
@@ -55,6 +91,15 @@ String FrameWeb::formatBytes(size_t bytes) { // convert sizes in bytes to KB and
   return String(bytes) + "B";
 }
 
+/**
+ * @brief Recursively list files in a directory
+ * @param ret Reference String that will be filled with formatted list
+ * @param fs File system (SPIFFS)
+ * @param dirname Directory path to list
+ * @param levels Number of recursion levels (0 = no recursion)
+ * 
+ * Displays all files and subdirectories with formatted sizes.
+ */
 //  Directory list
 void FrameWeb::listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t levels) {
   ret += F("Listing directory: ");
@@ -78,6 +123,14 @@ void FrameWeb::listDir(String& ret, fs::FS &fs, const char * dirname, uint8_t le
   return;
 }
 
+/**
+ * @brief Determine MIME type of a file by its extension
+ * @param filename File name
+ * @return String MIME type (ex: "text/html", "image/png", "application/json")
+ * 
+ * If "download" parameter is present in HTTP request,
+ * returns "application/octet-stream" to force download.
+ */
 String FrameWeb::getContentType(String filename) {
   if (server.hasArg("download"))        { return "application/octet-stream";
   } else if (filename.endsWith(".htm")) { return "text/html";
@@ -96,6 +149,12 @@ String FrameWeb::getContentType(String filename) {
   return "text/plain";
 }
 
+/**
+ * @brief Save configuration to config.json file on SPIFFS
+ * @param filename Configuration file path
+ * @param config Config structure to save
+ * @return String Confirmation or error message
+ */
 // Save config file
 String FrameWeb::saveConfiguration(const char *filename, const Config &config) {
   File file = SPIFFS.open(filename, "w");
@@ -106,6 +165,12 @@ String FrameWeb::saveConfiguration(const char *filename, const Config &config) {
   return F("Config file has been saved.");
 }
 
+/**
+ * @brief Start SPIFFS (SPI Flash File System)
+ * 
+ * Automatically formats SPIFFS if not formatted.
+ * Sets bit 0 of initSetupState on success.
+ */
 // Start SPIFFS & Read config file
 void FrameWeb::startSPIFFS() {
   if (SPIFFS.begin()==false){
@@ -119,6 +184,20 @@ void FrameWeb::startSPIFFS() {
   //FDBXLN(ls);
 }
 
+/**
+ * @brief Load configuration from config.json
+ * @param filename Configuration file path
+ * @param config Reference to Config structure to fill
+ * @param hname Optional hostname (replaces file value if provided)
+ * 
+ * If file is missing or invalid, uses default values:
+ *  - HostName: "esp32dudu" or value passed as parameter
+ *  - MAC: hardware WiFi MAC address
+ *  - LoginName/Password: "admin"/"admin"
+ *  - UseToolsLocal: true
+ * 
+ * On JSON error, automatically creates file with defaults.
+ */
 void FrameWeb::loadConfiguration(const char *filename, Config &config, const char* hname) {
   // Open file for reading configuration
   File file = SPIFFS.open(filename, "r");
@@ -153,6 +232,18 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
   }
 }
 
+/**
+ * @brief Start WiFiManager
+ * 
+ * Manages WiFi connection with following features:
+ *  - Automatically connect to saved network
+ *  - Enable Access Point (AP) if connection fails
+ *  - Allow user to select WiFi via web interface
+ *  - Configure custom MAC address
+ *  - Restart if connection fails after timeout
+ * 
+ * Note: ConfigModeCallback is called when entering AP mode
+ */
 // Start WiFiManager
 void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ ) {
 #ifndef DEBUG_FRAMEWEB
@@ -194,6 +285,15 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
     initSetupState = initSetupState | (1<<2);
 }
 
+/**
+ * @brief Start OTA (Over-The-Air update) service
+ * 
+ * Enables firmware update without USB cable:
+ *  - Hostname: device name (for Arduino IDE)
+ *  - Password: authentication for OTA
+ * 
+ * Sets bit 3 of initSetupState on success.
+ */
 // Start OverTheAir firmware uppload
 void FrameWeb::startOTA() {
   // ArduinoOTA.setPort(8266); default is 8266
@@ -207,6 +307,12 @@ void FrameWeb::startOTA() {
   initSetupState = initSetupState | (1<<3);
 }
 
+/**
+ * @brief Display HTTP arguments and headers received (DEBUG)
+ * 
+ * Useful for analyzing HTTP requests during development.
+ * Displays all POST/GET arguments and HTTP headers.
+ */
 // Show HTML Arguments and Header (use for debugging)
 void FrameWeb::showAH() {
 	String m = "[F]Nbr of args:";	m+=server.args();	m+="\n\r";
@@ -222,6 +328,11 @@ void FrameWeb::showAH() {
 	Serial.print("[F]hostHeader:");Serial.println(server.hostHeader());
 }
 
+/**
+ * @brief Convert WiFi error code to readable string
+ * @param err WiFi error code
+ * @return const char* Error description
+ */
 // Return Wifi Status code as String
 const char* FrameWeb::wifiStatus(int err) {
   switch (err) {
@@ -237,6 +348,11 @@ const char* FrameWeb::wifiStatus(int err) {
   return ret.c_str();
 }
 
+/**
+ * @brief Convert HTTP error code to readable string
+ * @param err HTTP or client error code
+ * @return const char* Error description
+ */
 // Return Http some Status code as String
 const char* FrameWeb::httpStatus(int err) {
   switch (err) {
@@ -252,6 +368,13 @@ const char* FrameWeb::httpStatus(int err) {
   return ret.c_str();
 }
 
+/**
+ * @brief Convert reset reason code to readable string
+ * @param reason ESP32 reset reason code
+ * @return const char* Reset reason description
+ * 
+ * Examples: POWERON_RESET, SW_RESET, DEEPSLEEP_RESET, etc.
+ */
 const char*  FrameWeb::resetReason(int reason){
   switch ( reason) {
     case 1 : return "POWERON_RESET"; break;          /**<1, Vbat power on reset*/
@@ -274,6 +397,14 @@ const char*  FrameWeb::resetReason(int reason){
   return "No_Mean";
 }
 
+/**
+ * @brief Start WebSocket server on port 81
+ * 
+ * Enables bidirectional real-time communication with clients.
+ * Events are processed via the webSocketEvent() callback function.
+ * 
+ * Sets bit 4 of initSetupState on success.
+ */
 // Start webSocket
 void FrameWeb::startWebSocket() {
   webSocket.begin();
@@ -318,7 +449,7 @@ bool FrameWeb::handleFileRead(String path) {               // send the right fil
     return true;
   } else {                                                 // Otherwise build answer locally
     if (config.UseToolsLocal) {
-      if (path.endsWith("/index.html")){                   // For default index.html page after authentification
+      if (path.endsWith("/index.html")){  // Tools                 // For default index.html page after authentification
         if (!server.authenticate(config.LoginName, config.LoginPassword)) {
            server.requestAuthentication();
            return true;
@@ -601,3 +732,4 @@ void FrameWeb::loop() {
     ESP.restart();
   }
 }
+

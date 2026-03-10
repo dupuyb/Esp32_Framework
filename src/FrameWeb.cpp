@@ -10,7 +10,10 @@
 
 // ============ Pre-generated HTML (generated from FrameWeb.html) ============
 // These character strings PROGMEM are stored in Flash to save RAM
-//---- Start Generated from src/FrameWeb.html file --- 2026-03-10 11:40:12.864140
+ //! Warning  paragraph between 'Start Generated' and 'End Generated' comment is generated 
+ //! from src/FrameWeb.html file, any modification will be lost after next generation. To modify HTML content, edit src/FrameWeb.html file 
+ //! and re-generate FrameWeb.cpp file using extra_script2.py python script.
+//---- Start Generated from src/FrameWeb.html file --- 2026-03-10 15:16:05
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>ESP32</title><meta content='width=device-width' name='viewport'></head>";
 //---- len : 143 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>ESP32 Uploader</h1></header><div><p style='text-align: center'>Transfer a file to the SPIFFS filesystem.<br />Gzip file is supported.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
@@ -25,7 +28,7 @@ const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax
 //---- len : 1293 bytes
 const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table width='500' cellpadding='0'><tr><th>File Name</th><th>Size</th><th>Action</th></tr>";
 //---- len : 397 bytes
-//---- End Generated 
+//---- End Generated
 
 // Global framework instance (used for callbacks)
 FrameWeb* myFrameWeb;
@@ -45,10 +48,6 @@ FrameWeb::~FrameWeb(){
   server.close();
   wifiManager.stopWebPortal();
 }
-
-/**
- * @brief Destructor of the FrameWeb class
- */
 
 /**
  * @brief Convert current configuration to JSON format

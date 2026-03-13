@@ -12,23 +12,26 @@
 // These character strings PROGMEM are stored in Flash to save RAM
  //! Warning  paragraph between 'Start Generated' and 'End Generated' comment is generated 
  //! from src/FrameWeb.html file, any modification will be lost after next generation. To modify HTML content, edit src/FrameWeb.html file 
- //! and re-generate FrameWeb.cpp file using extra_script2.py python script.
-//---- Start Generated from src/FrameWeb.html file --- 2026-03-10 15:16:05
-const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><html><head><title>ESP32</title><meta content='width=device-width' name='viewport'></head>";
-//---- len : 143 bytes
-const char HTTP_BODYUP[] PROGMEM = "<body><center><header><h1 style='background-color:lightblue'>ESP32 Uploader</h1></header><div><p style='text-align: center'>Transfer a file to the SPIFFS filesystem.<br />Gzip file is supported.</p><form method='post' enctype='multipart/form-data' style='margin: 0px auto 8px auto'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'><input class='button' type='submit' value='Upload' name='submit'></form></div><a class='button' href='/''>Back</a></center></body></html>";
-//---- len : 569 bytes
-const char HTTP_BODYID[] PROGMEM = "<body><center><header><h1 style='background-color: lightblue;'>ESP32 Dudu Tools</h1></header><div><p style='text-align: center;'>This message is displayed because the index.html file was not found.</p><div style='text-align: left; position: absolute; left: 50%; transform: translate(-50%, 0%);'><p style='line-height: .1;'><em><strong>Configuration facilities:</strong></em><br /><table width='500' cellpadding='0'><tr><td>- Files explorer of the Embedded File System</td><td align='right'><button style='width: 60%;' onClick=\"window.location=' /explorer';\">Explorer</button><button style='width: 30%;' onClick=\"window.location='/ls';\">Ls</button></td></tr><tr><td>- Show configuration file used at startup</td><td align='right'><button style='width: 90%;'onClick=\"window.location='/config.json';\">Config.json</button></td></tr><tr><td>- Upload file to Embedded File System</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/upload';\">Uploader</button></td></tr><tr><td>- Update firmware O.T.A. to the EPS32</td><td align='right'><button style='width: 90%;' onClick=\"window.location='/update';\">Update</button></td></tr></table>";
-//---- len : 1202 bytes
-const char HTTP_BODYI0[] PROGMEM = "<p style='line-height: .1;'><em><strong>System facilities:</strong></em></p><table width='400' cellpadding='0'><tbody><tr>- <b>Restart</b> Initiates an immediate reboot of the ESP32<br />- <b>Save Config</b> Saves the configuration to the Embedded File System (EFS). *<br />- <b>Restore</b> default parameters and remove files **</td></tr></tbody></table><table width='500' cellpadding='0'><tbody><tr><td>- Select a command in the list:</td><td><form action='post' method='post'><select name='cmd'><option value='none'></option><option value='restart'>Restart</option><option value='save-config'>Save Config. *</option><option value='reset-wifi'>Reset WiFi ***</option><option value='restore'>Restore **</option></select><button type='submit'>Validate</button></form></td></tr></tbody></table></p>";
-//---- len : 835 bytes
-const char HTTP_BODYI1[] PROGMEM = "<p style='line-height: 1.0; font-size: 10px;'>* All parameters in config.json file will be affected.<br>** The login/password and all flag will be set to default. Embedded File System will be reformatted.<br>*** The device will reboot in Access Point mode to allow selection of a new WiFi network.</p></div><div>&nbsp;</div></div></center></body></html>";
-//---- len : 391 bytes
-const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><center><header><h1 style='background-color: lightblue;'>ESP32 code update</h1></header><div><p style='text-align: center;'>Use this tool to update the firmware on the ESP32 over the air.<br>The default file format is binary (.bin)</p><form method='POST' action='#' enctype='multipart/form-data' id='upload_form'><input type='file' accept='.bin'name='update'><input type='submit' value='Update'></form><div id='prg'>progress: 0%</div></div><p style='line-height: 1.0; font-size: 10px;'>Warning: After firmware update the ESP32 will be restarted.</p><script>$('form').submit(function (e) {e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form);$.ajax({url: '/update', type: 'POST', data: data, contentType: false, processData: false, xhr: function () {var xhr = new window.XMLHttpRequest();xhr.upload.addEventListener('progress', function (evt) {if (evt.lengthComputable) {var per = evt.loaded / evt.total;$('#prg').html('progress: ' + Math.round(per * 100) + '%');}}, false);return xhr;}, success: function (d, s) {console.log('success!')}, error: function (a, b, c) {}});});</script><a class='button' href='/'>Back</a></center></body></ntml>";
-//---- len : 1293 bytes
-const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><center><header><h1 style='background-color: lightblue'>File explorer</h1></header><div><table width='500' cellpadding='0'><tr><th>File Name</th><th>Size</th><th>Action</th></tr>";
-//---- len : 397 bytes
+ //! and re-generate FrameWeb.cpp file using extra_script.py python script.
+ //! See platfoemio.ini for configuration of extra_script.py script execution during build process.
+//---- Start Generated from src/FrameWeb.html file --- 2026-03-13 10:25:15
+const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>ESP32</title><style>:root {--primary: #4CAF50;--primary-dark: #45a049;--bg-light: #f5f5f5;--bg-item: #f9f9f9;--shadow: 0 2px 4px rgba(0,0,0,.1);--radius: 8px;}* { margin: 0; padding: 0; box-sizing: border-box; }body { font-family: Arial, sans-serif; background: var(--bg-light); padding: 10px; color: #333; }.container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }.section-title, header { border-bottom: 2px solid #ddd; margin-bottom: 15px; padding-bottom: 10px; }header { text-align: center; border-color: var(--primary); margin-bottom: 30px; }h1 { background: linear-gradient(135deg, #87CEEB, var(--primary)); color: #fff; padding: 15px; border-radius: 5px; }.action-item, .form-group {display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;padding: 10px; background: var(--bg-item); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 10px;}.button-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }button {padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px;cursor: pointer; transition: 0.3s;}button:hover { background: var(--primary-dark); }.system-actions { background: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }.footnotes { font-size: 12px; color: #666; background: #fffacd; border-left: 4px solid #f0ad4e; padding: 15px; border-radius: 4px; }@media (max-width: 768px) {.action-item, .form-group { grid-template-columns: 1fr; }.button-group { justify-content: flex-start; }h1 { font-size: 1.2rem; }}</style></head>";
+//---- len : 1800 bytes
+const char HTTP_BODYUP[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Uploader</h1></header><p class='message'>Transfer a file to SPIFFS. Gzip supported.</p><div class='section'><div class='section-title'>File Upload</div><div class='action-list'><div class='action-item'><div>- Select a file to upload to the EFS.</div><div class='button-group'><form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'><button type='submit' name='submit'>Upload</button></form></div></div></div></div><div style='text-align:center;'><button onclick=\"window.location='/';\">Back</button></div></div></body></html>";
+//---- len : 806 bytes
+const char HTTP_BODYID[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Dudu Tools</h1></header><p class='message'>Index.html file not found on the device.</p><div class='section'><div class='section-title'>Configuration Features</div><div class='action-list'><div class='action-item'><div>- Browse and manage files in the EFS.</div><div class='button-group'><button onclick=\"window.location='/explorer';\">Explorer</button><button onclick=\"window.location='/ls';\">List</button></div></div><div class='action-item'><div>- View the configuration file used at startup</div><div class='button-group'><button onclick=\"window.location='/config.json';\">Config.json</button></div></div><div class='action-item'><div>- Upload files to the Embedded File System</div><div class='button-group'><button onclick=\"window.location='/upload';\">Uploader</button></div></div><div class='action-item'><div>- Update ESP32 firmware over the air (OTA)</div><div class='button-group'><button onclick=\"window.location='/update';\">Update</button></div></div></div></div>";
+//---- len : 1067 bytes
+const char HTTP_BODYI0[] PROGMEM = "<div class='section'><div class='section-title'>System Actions</div><div class='system-actions'><ul><li>- <b>Restart</b>: Reboots the ESP32.</li><li>- <b>Save Config</b>: Saves settings to EFS. *</li><li>- <b>Restore</b>: Restores defaults and deletes files. **</li><li>- <b>Reset WiFi</b>: Resets WiFi settings. ***</li></ul></div><div class='form-group'><label for='cmd'>- Select a command from the list:</label><form action='/' method='post' style='display: flex; gap: 8px; align-items: center;'><select id='cmd' name='cmd' style='flex: 1; min-width: 150px;'><option value='none'></option><option value='restart'>Restart</option><option value='save-config'>Save Config *</option><option value='reset-wifi'>Reset WiFi ***</option><option value='restore'>Restore **</option></select><button type='submit'>Apply</button></form></div></div>";
+//---- len : 877 bytes
+const char HTTP_BODYI1[] PROGMEM = "<div class='footnotes'><p>* All parameters in config.json are affected.</p><p>** Login, password, and flags reset to default. EFS reformatted.</p><p>*** Device reboots in AP mode to select a new WiFi network.</p></div></div></body></html>";
+//---- len : 276 bytes
+const char HTTP_FIRM0[] PROGMEM = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script><body><div class='container'><header><h1>ESP32 Firmware Update</h1></header><p class='message'>Use this tool to update the ESP32 firmware over the air. Default format: .bin</p><div class='section'><div class='section-title'>Firmware Update</div><div class='action-item'><div>- Upload a .bin firmware file to update the ESP32.</div><div class='button-group'><form method='POST' action='#' enctype='multipart/form-data' id='upload_form' style='display: flex; gap: 8px; align-items: center; flex: 1;'><input type='file' accept='.bin' name='update' style='flex: 1; min-width: 150px;'><button type='submit'>Update</button></form></div></div></div><div class='section'><div class='section-title'>Progress</div><div class='action-item' style='justify-content: center;'><div id='prg' style='text-align: center; font-weight: bold; color: #4CAF50;'>progress: 0%</div></div></div><div class='footnotes'><p>Warning: ESP32 will restart automatically after the update.</p></div><div style='text-align: center; margin-top: 20px;'><button onclick=\"window.location='/';\">Back</button></div></div><script>$('form').submit(function(e) {e.preventDefault();var form = $('#upload_form')[0];var data = new FormData(form);$.ajax({url: '/update',type: 'POST',data: data,contentType: false,processData: false,xhr: function() {var xhr = new window.XMLHttpRequest();xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded / evt.total;$('#prg').html('progress: ' + Math.round(per * 100) + '%');}}, false);return xhr;},success: function(d, s) {console.log('success!')},error: function(a, b, c) {}});});</script></body></html>";
+//---- len : 1769 bytes
+const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><body><div class='container'><header><h1>File Explorer</h1></header><p class='message'>Browse and manage files in the EFS.</p><div class='section'><div class='section-title'>Files</div><div class='action-list'>";
+//---- len : 429 bytes
 //---- End Generated
+
+// old size = 4830 new size = 7024 bytes incresing by 2194 bytes due to HTML content addition, but saving RAM by storing HTML in Flash memory (PROGMEM) 
 
 // Global framework instance (used for callbacks)
 FrameWeb* myFrameWeb;
@@ -214,7 +217,7 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
   // Set config or defaults
   uint8_t hardwareMacAddess[6];
   esp_read_mac(hardwareMacAddess, ESP_MAC_WIFI_STA);
-  strlcpy(config.HostName, rootcfg["HostName"] | ((hname!=NULL)?(hname):("esp32dudu")),sizeof(config.HostName));
+  strlcpy(config.HostName, rootcfg["HostName"] | ((hname!=NULL)?(hname):(HOSTDEFAULT)),sizeof(config.HostName));
   JsonArray mac = rootcfg["MacAddress"];
   for (int i=0; i<6; i++)
      config.MacAddress[i] = mac[i] | hardwareMacAddess[i];
@@ -547,12 +550,16 @@ void FrameWeb::explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t l
       if (levels)  explorer(ret, fs, file.name(), levels - 1);
     } else {
       String strf = (file.name());
-			ret += "<tr><td>";
-      ret += "<a href='";ret += strf;ret += "' >";ret += strf; ret += "</a>";
-			ret += "</td><td>"+(formatBytes(file.size()))+"</td>\n";
-			ret += "<td style='text-align: center;''><button onClick=\"clic('remove', '"; ret += (strf);
-			ret += "' )\">Remove</button>\n <button onClick=\"clic('download', '"; ret += (strf);
-		  ret += "' )\">Download</button></td></tr>\n";
+      ret += "<div class='action-item'><div><a href='";
+      ret += strf;
+      ret += "' >";
+      ret += strf; 
+      ret += "</a><span style='color: #999;'> ("+(formatBytes(file.size()))+")</span></div>";
+      ret += "<div class='button-group'><button onclick=\"clic('download', '";
+      ret += strf;
+      ret += "')\">Download</button><button onclick=\"clic('remove', '";
+      ret += strf;
+      ret +="')\">Remove</button></div></div>";
     }
     file = root.openNextFile();
   }
@@ -607,7 +614,7 @@ void FrameWeb::exploreWeb(){
   String msg = FPSTR(HTTP_HEADAL);
   msg += FPSTR(HTTP_EXPL0);
   explorer(msg, SPIFFS, "/", 0);
-  msg += F("</table><a class='button' href='/''>Back</a></center></div></html>");
+  msg += F("</div></div><div style='text-align: center; margin-top: 20px;'><button onclick=\"window.location='/';\">Back</button></div></div></body></html>");
   server.send(200, "text/html", msg);
 }
 
@@ -644,6 +651,7 @@ void FrameWeb::startWebServer(){
   server.on("/post",  HTTP_POST, []() {        // If a POST request is sent to the /edit.html address,
      myFrameWeb->handlePost();
   });
+
   // Simple command wihout pwd
   server.on("/ls", [](){                      // Get list of file in FS
     myFrameWeb->sendLs();
@@ -714,7 +722,7 @@ void FrameWeb::loop() {
     // wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); //load the flash-saved configs
     esp_wifi_init(&cfg); //initiate and allocate wifi resources (does not matter if connection fails)
-    delay(2000); //wait a bit
+    delay(2000); //wait a little bit
     if(esp_wifi_restore()!=ESP_OK){
       Serial.println("WiFi is not initialized by esp_wifi_init ");
     }else{

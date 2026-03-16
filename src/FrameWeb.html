@@ -75,7 +75,7 @@
 <body>
     <div class='container'>
         <header>
-            <h1>ESP32 Dudu Tools</h1>
+            <h1>ESP32 Embedded Tools</h1>
         </header>
         
         <p class='message'>Index.html file not found on the device.</p>
@@ -130,7 +130,7 @@
             
             <div class='form-group'>
                 <label for='cmd'>- Select a command from the list:</label>
-                <form action='/' method='post' style='display: flex; gap: 8px; align-items: center;'>
+                <form action='post' method='post' style='display: flex; gap: 8px; align-items: center;'>
                     <select id='cmd' name='cmd' style='flex: 1; min-width: 150px;'>
                         <option value='none'></option>
                         <option value='restart'>Restart</option>
@@ -154,17 +154,16 @@
 </html>
 
 <!-- const char HTTP_FIRM0[] PROGMEM = -->
-<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
 <body>
     <div class='container'>
         <header>
             <h1>ESP32 Firmware Update</h1>
         </header>
-        <p class='message'>Use this tool to update the ESP32 firmware over the air. Default format: .bin</p>
+        <p class='message'>ESP32 OTA firmware update. Default format: .bin.</p>
         <div class='section'>
             <div class='section-title'>Firmware Update</div>
             <div class='action-item'>
-                <div>- Upload a .bin firmware file to update the ESP32.</div>
+                <div>- ESP32 firmware .bin update.</div>
                 <div class='button-group'>
                     <form method='POST' action='#' enctype='multipart/form-data' id='upload_form' style='display: flex; gap: 8px; align-items: center; flex: 1;'>
                         <input type='file' accept='.bin' name='update' style='flex: 1; min-width: 150px;'>
@@ -180,39 +179,49 @@
             </div>
         </div>
         <div class='footnotes'>
-            <p>Warning: ESP32 will restart automatically after the update.</p>
+            <p>Warning: ESP32 restarts automatically after update.</p>
         </div>
         <div style='text-align: center; margin-top: 20px;'>
             <button onclick="window.location='/';">Back</button>
         </div>
     </div>
     <script>
-    $('form').submit(function(e) {
-        e.preventDefault();
-        var form = $('#upload_form')[0];
-        var data = new FormData(form);
-        $.ajax({
-            url: '/update',
-            type: 'POST',
-            data: data,
-            contentType: false,
-            processData: false,
-            xhr: function() {
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(evt) {
-                    if (evt.lengthComputable) {
-                        var per = evt.loaded / evt.total;
-                        $('#prg').html('progress: ' + Math.round(per * 100) + '%');
-                    }
-                }, false);
-                return xhr;
-            },
-            success: function(d, s) {
-                console.log('success!')
-            },
-            error: function(a, b, c) {}
+    (function() {
+        var form = document.getElementById('upload_form');
+        var progress = document.getElementById('prg');
+        if (!form || !progress) {
+            return;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var data = new FormData(form);
+            var xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(evt) {
+                if (evt.lengthComputable) {
+                    var per = evt.loaded / evt.total;
+                    progress.textContent = 'progress: ' + Math.round(per * 100) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    progress.textContent = 'progress: 100%';
+                } else {
+                    progress.textContent = 'update failed';
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                progress.textContent = 'network error';
+            });
+
+            xhr.open('POST', '/update');
+            xhr.send(data);
         });
-    });
+    })();
     </script>
 </body>
 </html>

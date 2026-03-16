@@ -60,8 +60,7 @@
   #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.3.0"   ///< Framework version
-#define HOSTDEFAULT "esp32dudu" 
+#define FrameVersion "1.3.1"   ///< Framework version
 
 /**
  * @struct Config
@@ -69,7 +68,7 @@
  * 
  * This structure contains all configuration parameters for the device.
  * Default values are:
- *  - HostName: "esp32dudu" (accessible on the local network)
+ *  - HostName: esp32 model name (accessible on the local network
  *  - MAC: hardware WiFi MAC address
  *  - LoginName: "admin"
  *  - LoginPassword: "admin"
@@ -95,6 +94,17 @@ struct Config {
  * @param myWiFiManager Pointer to the WiFiManager instance
  */
 void configModeCallback (WiFiManager *myWiFiManager);
+
+/**
+* @brief Get the ESP32 model name as a string
+ * 
+ * Uses esp_chip_info to determine the specific ESP32 model (e.g., ESP32, ESP32-S2, etc.)
+ * and returns a human-readable string. This is useful for setting a default hostname
+ * based on the device type.
+ *   
+* @return char* Pointer to a string containing the ESP32 model name (e.g., "ESP32-S3")
+*/
+char * egtEspModelName() ;
 
 /**
  * @brief Callback called when configuration must be saved
@@ -135,7 +145,7 @@ public:
    * @brief Serialize the current configuration to a JSON string.
    * @return String JSON representation of the Config struct.
    */
-  String JsonConfig();
+  String JsonConfig(); 
 
   /**
    * @brief Format a byte count into a human-readable string.
@@ -187,7 +197,7 @@ public:
    *                 or does not contain a HostName entry.
    *
    * Falls back to built-in defaults when the file is missing or invalid:
-   *  - HostName: "esp32dudu" (or the value of @p hname)
+   *  - HostName: esp32 model name (or the value of @p hname)
    *  - MAC: hardware WiFi MAC address
    *  - LoginName / LoginPassword: "admin" / "admin"
    *  - UseToolsLocal: true
@@ -434,9 +444,9 @@ public:
   File fsUploadFile;                            ///< Temporary file for upload
   String externalHtmlTools = "";                ///< Custom HTML to add to tools page
   
-  /**
+   /**
    * @brief Initialization state (bitmask)
-   * 
+   *
    * Each bit indicates if a service was successfully initialized:
    *  - Bit 0 (1<<0): startSPIFFS
    *  - Bit 1 (1<<1): loadConfiguration
@@ -445,6 +455,7 @@ public:
    *  - Bit 4 (1<<4): startWebSocket
    *  - Bit 5 (1<<5): startWebServer
    *  - Bit 6 (1<<6): startMDNS
+   *  - initSetupState = 0 au départ, chaque service positionne son bit lors de l'init.
    */
   uint8_t initSetupState = 0;
   

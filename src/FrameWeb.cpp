@@ -14,7 +14,7 @@
  //! from src/FrameWeb.html file, any modification will be lost after next generation. To modify HTML content, edit src/FrameWeb.html file 
  //! and re-generate FrameWeb.cpp file using extra_script.py python script.
  //! See platfoemio.ini for configuration of extra_script.py script execution during build process.
-//---- Start Generated from src/FrameWeb.html file --- 2026-03-16 19:19:29
+//---- Start Generated from src/FrameWeb.html file --- 2026-05-10 16:25:02
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>ESP32</title><style>:root {--primary: #4CAF50;--primary-dark: #45a049;--bg-light: #f5f5f5;--bg-item: #f9f9f9;--shadow: 0 2px 4px rgba(0,0,0,.1);--radius: 8px;}* { margin: 0; padding: 0; box-sizing: border-box; }body { font-family: Arial, sans-serif; background: var(--bg-light); padding: 10px; color: #333; }.container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }.section-title, header { border-bottom: 2px solid #ddd; margin-bottom: 15px; padding-bottom: 10px; }header { text-align: center; border-color: var(--primary); margin-bottom: 30px; }h1 { background: linear-gradient(135deg, #87CEEB, var(--primary)); color: #fff; padding: 15px; border-radius: 5px; }.action-item, .form-group {display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;padding: 10px; background: var(--bg-item); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 10px;}.button-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }button {padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px;cursor: pointer; transition: 0.3s;}button:hover { background: var(--primary-dark); }.system-actions { background: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }.footnotes { font-size: 12px; color: #666; background: #fffacd; border-left: 4px solid #f0ad4e; padding: 15px; border-radius: 4px; }@media (max-width: 768px) {.action-item, .form-group { grid-template-columns: 1fr; }.button-group { justify-content: flex-start; }h1 { font-size: 1.2rem; }}</style></head>";
 //---- len : 1800 bytes
 const char HTTP_BODYUP[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Uploader</h1></header><p class='message'>Transfer a file to SPIFFS. Gzip supported.</p><div class='section'><div class='section-title'>File Upload</div><div class='action-list'><div class='action-item'><div>- Select a file to upload to the EFS.</div><div class='button-group'><form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'><button type='submit' name='submit'>Upload</button></form></div></div></div></div><div style='text-align:center;'><button onclick=\"window.location='/';\">Back</button></div></div></body></html>";
@@ -37,14 +37,14 @@ FrameWeb* myFrameWeb;
 /**
  * @brief Constructor of the FrameWeb class
  */
-FrameWeb::FrameWeb(){
+FrameWeb::FrameWeb() {
   myFrameWeb = this;
 }
 
 /**
  * @brief Destructor of the FrameWeb class
  */
-FrameWeb::~FrameWeb(){
+FrameWeb::~FrameWeb() {
   webSocket.close();
   server.close();
   wifiManager.stopWebPortal();
@@ -59,29 +59,30 @@ FrameWeb::~FrameWeb(){
  *   
 * @return char* Pointer to a string containing the ESP32 model name (e.g., "ESP32-S3")
 */
-char * egtEspModelName() {
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
+char *egtEspModelName() {
+  esp_chip_info_t chip_info;
+  esp_chip_info(&chip_info);
 
-    const char *model;
-    switch (chip_info.model) {
-    case CHIP_ESP32:
-        model = "ESP32";
-        break;
-    case CHIP_ESP32S2:
-        model = "ESP32-S2";
-        break;
-    case CHIP_ESP32S3:
-        model = "ESP32-S3";
-        break;
-    case CHIP_ESP32C3:
-        model = "ESP32-C3";
-        break;
-    default:
-        model = "ESP32-Unknown";
-    }
-    return (char*)model;
+  const char *model;
+  switch (chip_info.model)
+  {
+  case CHIP_ESP32:
+    model = "ESP32";
+    break;
+  case CHIP_ESP32S2:
+    model = "ESP32-S2";
+    break;
+  case CHIP_ESP32S3:
+    model = "ESP32-S3";
+    break;
+  case CHIP_ESP32C3:
+    model = "ESP32-C3";
+    break;
+  default:
+    model = "ESP32-Unknown";
   }
+  return (char *)model;
+}
 
 /**
  * @brief Convert current configuration to JSON format
@@ -212,9 +213,6 @@ void FrameWeb::startSPIFFS() {
     SPIFFS.begin();
   } 
   initSetupState = initSetupState | (1<<0);
-  //String ls;
-  //listDir(ls, SPIFFS, "/", 0);
-  //FDBXLN(ls);
 }
 
 /**
@@ -257,7 +255,7 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
   strlcpy(config.LoginPassword, rootcfg["LoginPassword"] | "admin",sizeof(config.LoginPassword));
   config.UseToolsLocal = rootcfg["UseToolsLocal"] | true;
   if ( error ) {
-    FDBXLN(F("Error config file reading."));
+    FDBXLN(F("Error reading config file."));
     String ret = saveConfiguration(filename, config);
     FDBXLN(ret);
   } else {
@@ -303,14 +301,14 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
   WiFi.setHostname(config.HostName);
   
   if ( ! wifiManager.autoConnect( config.HostName) ) {
-    FDBX("failed to connect and hit timeout.");
+    FDBX("Failed to connect (timeout).");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
     ESP.restart();
     delay(5000);
   }
   // Wait for connection
-  FDBX(F("Waitting Wifi connected..."));
+  FDBX(F("Waiting for WiFi connection..."));
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); FDBX(".");
   }
@@ -408,7 +406,7 @@ const char* FrameWeb::httpStatus(int err) {
  * 
  * Examples: POWERON_RESET, SW_RESET, DEEPSLEEP_RESET, etc.
  */
-const char*  FrameWeb::resetReason(int reason){
+const char*  FrameWeb::resetReason(int reason) {
   switch ( reason) {
     case 1 : return "POWERON_RESET"; break;          /**<1, Vbat power on reset*/
     case 3 : return "SW_RESET"; break;               /**<3, Software reset digital core*/
@@ -445,13 +443,13 @@ void FrameWeb::startWebSocket() {
   initSetupState = initSetupState | (1<<4);
 }
 
-String FrameWeb::simpleUpload(){
+String FrameWeb::simpleUpload() {
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_BODYUP);
   return message;
 }
 
-String FrameWeb::simpleIndex(){
+String FrameWeb::simpleIndex() {
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_BODYID);
   message += FPSTR(HTTP_BODYI0);
@@ -460,7 +458,7 @@ String FrameWeb::simpleIndex(){
   return message;
 }
 
-String FrameWeb::simpleFirmware(){
+String FrameWeb::simpleFirmware() {
   String message = FPSTR(HTTP_HEADAL);
   message += FPSTR(HTTP_FIRM0);
   return message;
@@ -535,13 +533,13 @@ void FrameWeb::handleFileUpload(){                      // upload a new file to 
       server.sendHeader("Location","/success.html");      // Redirect the client to the success page
       server.send(303);
     } else {
-      server.send(500, "text/plain", "500: couldn't create file");
+      server.send(500, "text/plain", "Couldn't upload file:["+path+"] in SPIFFS.");
     }
   }
 }
 
 String FrameWeb::textNotFound(){
-  String message = "404: File Not Found\n\r";
+  String message = "File Not Found\n\r";
   message += "URI: ";
   message += server.uri();
   message += " Method: ";
@@ -584,29 +582,29 @@ void FrameWeb::explorer(String& ret, fs::FS &fs, const char * dirname, uint8_t l
   if (!root) {  return;  }
   if (!root.isDirectory()) { return; }
   File file = root.openNextFile();
- 
+  // For each file in the directory, add an entry to the HTML list with file name, size, and action buttons
   while (file) {
     if (file.isDirectory()) {
       if (levels)  explorer(ret, fs, file.name(), levels - 1);
     } else {
       String strf = (file.name());
-      ret += "<div class='action-item'><div><a href='";
+      ret += F("<div class='action-item'><div><a href='");
       ret += strf;
-      ret += "' >";
+      ret += F("' >");
       ret += strf; 
       ret += "</a><span style='color: #999;'> ("+(formatBytes(file.size()))+")</span></div>";
-      ret += "<div class='button-group'><button onclick=\"clic('download', '";
+      ret += F("<div class='button-group'><button onclick=\"clic('download', '");
       ret += strf;
-      ret += "')\">Download</button><button onclick=\"clic('remove', '";
+      ret += F("')\">Download</button><button onclick=\"clic('remove', '");
       ret += strf;
-      ret +="')\">Remove</button></div></div>";
+      ret +=F("')\">Remove</button></div></div>");
     }
     file = root.openNextFile();
   }
   return;
 }
 
-void FrameWeb::download(String filename){
+void FrameWeb::download(String filename) {
   File download = SPIFFS.open(filename);
   if (download) {
     server.sendHeader("Content-Type", "text/text");
@@ -616,16 +614,16 @@ void FrameWeb::download(String filename){
     download.close();
     return;
   }
-  server.send(500, "text/plain", "500: couldn't download file");
+  server.send(500, "text/plain", F("500: couldn't download file"));
 }
 
-void FrameWeb::sendLs(){
+void FrameWeb::sendLs() {
   String ls;
   listDir(ls, SPIFFS, "/", 0);
   server.send(200, "text/plain", ls);
 }
 
-void FrameWeb::upload_get(){
+void FrameWeb::upload_get() {
   if (!server.authenticate(config.LoginName, config.LoginPassword)) {
     server.requestAuthentication();
     return;
@@ -642,11 +640,11 @@ void FrameWeb::upload_get(){
   }
 }
 
-void FrameWeb::upload_post(){
+void FrameWeb::upload_post() {
   server.send(200, "text/plain", "");
 }
 
-void FrameWeb::exploreWeb(){
+void FrameWeb::exploreWeb() {
 #ifndef DEBUG_FRAMEWEB
   showAH();
 #endif
@@ -666,13 +664,13 @@ void FrameWeb::exploreWeb(){
   server.send(200, "text/html", msg);
 }
 
-void FrameWeb::update(){
+void FrameWeb::update() {
   server.sendHeader("Connection", "close");
   server.send(200, "text/plain", (Update.hasError())?"FAIL":"OK");
   ESP.restart();
 }
 
-void FrameWeb::update2(){
+void FrameWeb::update2() {
   HTTPUpload& upload = server.upload();
   if(upload.status == UPLOAD_FILE_START){
     Serial.printf("Update: %s\n\r", upload.filename.c_str());
@@ -722,7 +720,7 @@ void FrameWeb::startWebServer(){
     myFrameWeb->upload_post();
     },[](){
      myFrameWeb->handleFileUpload();
-     });
+    });
 
   server.onNotFound([]() {
     myFrameWeb->handleNotFound();
@@ -768,19 +766,21 @@ void FrameWeb::loop() {
   webSocket.loop();              // constantly check for websocket events
   ArduinoOTA.handle();           // listen for OTA events
   if (ResetWifi) {
-    // wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
+    wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); //load the flash-saved configs
     esp_wifi_init(&cfg); //initiate and allocate wifi resources (does not matter if connection fails)
     delay(2000); //wait a little bit
-    if(esp_wifi_restore()!=ESP_OK){
-      Serial.println("WiFi is not initialized by esp_wifi_init ");
-    }else{
+    if(esp_wifi_restore() != ESP_OK) {
+      Serial.println("WiFi is not initialized by esp_wifi_init");
+    } else {
       Serial.println("WiFi Configurations Cleared!");
     }
     wifiManager.startConfigPortal(config.HostName, NULL);
     ESP.restart();
   }
-  if (RebootAsap) ESP.restart(); // Restart in case of error
+  if (RebootAsap) { 
+    ESP.restart(); // Restart in case of error
+  }
   if (RestoreAsap) {             // Reset to factory settings
     FDBXLN("Format SPIFS...");
     SPIFFS.format();

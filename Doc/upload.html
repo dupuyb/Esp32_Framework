@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>ESP32</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing:border-box
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        padding:10px
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+        padding:20px
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom:15px
+    }
+
+    h1 {
+        background: linear-gradient(135deg, #87CEEB, #4CAF50);
+        color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        margin:0
+    }
+
+    .message {
+        text-align: center;
+        color: #666;
+        margin: 20px 0;
+        font-style:italic
+    }
+
+    .section {
+        margin-bottom:30px
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom:2px solid #ddd
+    }
+
+    .action-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom:20px
+    }
+
+    .action-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 15px;
+        align-items: center;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-left: 4px solid #4CAF50;
+        border-radius:4px
+    }
+
+    .button-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content:flex-end
+    }
+
+    button {
+        padding: 8px 16px;
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        min-width: 80px;
+        transition:background-color .3s ease
+    }
+
+    button:hover {
+        background-color:#45a049
+    }
+
+    button:active {
+        background-color:#3d8b40
+    }
+
+    .system-actions {
+        background-color: #f0f8ff;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom:20px
+    }
+
+    .system-actions ul {
+        list-style: none;
+        padding:0
+    }
+
+    .system-actions li {
+        padding: 8px 0;
+        border-bottom:1px solid #e0e0e0
+    }
+
+    .system-actions li:last-child {
+        border-bottom:none
+    }
+
+    .system-actions b {
+        color:#4CAF50
+    }
+
+    .form-group {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 15px;
+        align-items: center;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-left: 4px solid #4CAF50;
+        border-radius:4px
+    }
+
+    .form-group select {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size:14px
+    }
+
+    .footnotes {
+        font-size: 12px;
+        color: #666;
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #fffacd;
+        border-left: 4px solid #f0ad4e;
+        border-radius: 4px;
+        line-height:1.6
+    }
+
+    .footnotes p {
+        margin-bottom:8px
+    }
+
+    .footnotes p:last-child {
+        margin-bottom:0
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding:15px
+        }
+
+        h1 {
+            font-size:20px
+        }
+
+        .action-item {
+            grid-template-columns:1fr
+        }
+
+        .button-group {
+            justify-content:flex-start
+        }
+
+        button {
+            flex: 1;
+            min-width:unset
+        }
+
+        .form-group {
+            grid-template-columns:1fr
+        }
+
+        .form-group select {
+            width:100%
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding:10px
+        }
+
+        h1 {
+            font-size: 18px;
+            padding:10px
+        }
+
+        .section-title {
+            font-size:14px
+        }
+
+        button {
+            padding: 6px 12px;
+            font-size: 12px
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <header>
+            <h1>ESP32 Uploader</h1>
+        </header>
+        <p class='message'>Transfer a file to the SPIFFS filesystem. Gzip file is supported.</p>
+        <div class='section'>
+            <div class='section-title'>File Upload</div>
+            <div class='action-list'>
+                <div class='action-item'>
+                    <div>- Select a file to upload to the Embedded File System</div>
+                    <div class='button-group'>
+                        <form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'>
+                            <input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'>
+                            <button type='submit' name='submit'>Upload</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style='text-align:center;'>
+            <button onclick="window.location='/';">Back</button>
+        </div>
+    </div>
+</body>
+</html>

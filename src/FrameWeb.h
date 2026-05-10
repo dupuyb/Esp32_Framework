@@ -60,7 +60,7 @@
   #define FDBXMF(...)
 #endif
 
-#define FrameVersion "1.3.1"   ///< Framework version
+#define FrameVersion "1.3.3"   ///< Framework version
 
 /**
  * @struct Config

@@ -226,6 +226,13 @@ void setup() {
     /// Start all framework services (WiFi, web server, OTA, etc.)
     frame.setup();
 
+    // Append spectific page Cpp
+    // frame.server.on("/test", [](){
+    //    frame.server.send(HTTP_CODE_OK, "text/html", sentHtmlTest());
+    // });
+    frame.externalHtmlTools="Current frame version: <b>"+ String(FrameVersion) + "</b></br>";
+ 
+
     // ===== Network Time Configuration =====
     /// Configure NTP server and timezone
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);

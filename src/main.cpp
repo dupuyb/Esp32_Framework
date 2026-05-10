@@ -26,8 +26,7 @@ FrameWeb frame;
 /// LED indicator pin - shows WiFi status (HIGH = on, LOW = off)
 #ifdef PIO_SEEED_XIAO_ESP32S3_BOARD
     #define EspLedBlue LED_BUILTIN 
-#endif
-#ifdef PIO_ESP32_DEV_BOARD
+#else
     #define EspLedBlue  2
 #endif
 

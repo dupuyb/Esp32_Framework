@@ -1,5 +1,40 @@
 #!/usr/bin/env python3
 
+"""extra_script.py
+
+Utility script used by PlatformIO pre-build to generate embedded HTML blocks
+inside the C++ source file.
+
+Overview
+--------
+- Reads HTML template fragments from the input file.
+- Detects markers such as: <!-- const char HTTP_... -->
+- Converts each marked block to one-line C++ string declarations.
+- Replaces only the generated block delimited by:
+    - //---- Start Generated
+    - //---- End Generated
+
+Execution modes
+---------------
+1) PlatformIO pre-script mode (automatic)
+     Imported by PlatformIO from platformio.ini via extra_scripts.
+
+2) CLI mode (manual)
+     - Find template keys:
+         python3 extra_script.py -f src/FrameWeb.html
+     - Generate compressed C++ lines to stdout:
+         python3 extra_script.py -i src/FrameWeb.html
+     - Generate compressed C++ lines to file:
+         python3 extra_script.py -i src/FrameWeb.html -o out.cpp
+     - Build a standalone wrapper skeleton:
+         python3 extra_script.py -i src/FrameWeb.html -b out.h
+
+Notes
+-----
+- The generated region in the C++ file is overwritten on each run.
+- Edit the HTML source file, not the generated block in the C++ file.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -150,6 +185,10 @@ def GetListOfSubstrings(stringSubject: str, string1: str, string2: str) -> list[
 
 
 def findPattern(filename: str) -> tuple[list[str], int]:
+    """Extract template placeholders of the form %%Key%% from a source file.
+
+    Returns a sorted list of unique keys and the maximum key length.
+    """
     path = _require_existing_file(filename)
     content = path.read_text(encoding="utf-8")
     tags = _extract_template_keys(content)
@@ -206,6 +245,11 @@ def conpressHtml(inputfile: str) -> list[str]:
 
 
 def compressHtml(inputfile: str, outputfile: str) -> None:
+    """Convert HTML marker blocks into C++ declarations.
+
+    If outputfile is empty, lines are printed to stdout.
+    Otherwise they are written to the target file.
+    """
     lines = conpressHtml(inputfile)
     if outputfile.strip():
         out_path = _resolve_path(outputfile)
@@ -217,6 +261,13 @@ def compressHtml(inputfile: str, outputfile: str) -> None:
 
 
 def buildEsp32Cpp(inputfile: str, outputfile: str) -> None:
+    """Generate a standalone C++ wrapper file from the HTML source.
+
+    The output includes:
+    - include guard
+    - generated HTTP_* string declarations
+    - placeholder getter/setter mapping skeleton
+    """
     if not outputfile.strip():
         raise ValueError("output file is required for build mode (-b)")
 
@@ -267,6 +318,7 @@ def buildEsp32Cpp(inputfile: str, outputfile: str) -> None:
 
 
 def selesctApp(argv: list[str]) -> int:
+    """Dispatch CLI mode based on command-line arguments."""
     parser = _build_parser()
     args = parser.parse_args(argv)
 
@@ -321,6 +373,11 @@ def _detect_env_section(config: configparser.ConfigParser) -> str:
 
 
 def run_platformio_pre_script() -> int:
+    """Run automatic pre-build generation using values from platformio.ini.
+
+    Uses the active environment section, resolves custom_in_html/custom_out_h,
+    then updates the generated block in-place in the target C++ file.
+    """
     config, _ = _load_platformio_config()
     section = _detect_env_section(config)
 
@@ -344,6 +401,7 @@ def run_platformio_pre_script() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entrypoint with consistent error handling and return code."""
     try:
         return selesctApp(argv if argv is not None else sys.argv[1:])
     except Exception as exc:

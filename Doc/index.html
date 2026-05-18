@@ -221,14 +221,14 @@
 <body>
     <div class='container'>
         <header>
-            <h1>ESP32 Dudu Tools</h1>
+            <h1>ESP32 Embedded Tools</h1>
         </header>
         <p class='message'>This message is displayed because the index.html file was not found on the device.</p>
         <div class='section'>
             <div class='section-title'>Configuration Features</div>
             <div class='action-list'>
                 <div class='action-item'>
-                    <div>- Browse files in the Embedded File System</div>
+                    <div>- Browse and manage files in the EFS.</div>
                     <div class='button-group'>
                         <button onclick="window.location='/explorer';">Explorer</button>
                         <button onclick="window.location='/ls';">List</button>
@@ -266,7 +266,7 @@
                     <li>
                         - 
                         <b>Save Config</b>
-                        : Saves the configuration to the Embedded File System (EFS). *
+                        : Saves settings to EFS. *
                     </li>
                     <li>
                         - 
@@ -295,9 +295,9 @@
             </div>
         </div>
         <div class='footnotes'>
-            <p>* All parameters in the config.json file will be affected.</p>
-            <p>** The login, password, and all flags will be reset to their default values. The Embedded File System will be reformatted.</p>
-            <p>*** The device will reboot in Access Point mode to allow the selection of a new WiFi network.</p>
+            <p>* All parameters in config.json are affected.</p>
+            <p>** Login, password, and flags reset to default. EFS reformatted.</p>
+            <p>*** Device reboots in AP mode to select a new WiFi network.</p>
         </div>
     </div>
 </body>

@@ -10,7 +10,7 @@ FrameWeb is an ESP32 web framework for PlatformIO (Arduino) with:
 - SPIFFS file hosting
 - HTTP Basic authentication for sensitive routes
 
-Reference example: `src/demo1.cpp`.
+Reference example: `src/examples/demo1.cpp`.
 
 ## Quick Start
 
@@ -61,7 +61,7 @@ Required callbacks are declared in `src/FrameWeb.h`.
 
 - `src/FrameWeb.h`: public API, `Config` structure, callback declarations
 - `src/FrameWeb.cpp`: framework implementation
-- `src/demo1.cpp`: end-to-end usage example
+- `src/examples/demo1.cpp`: end-to-end usage example
 - `src/FrameWeb.html`: editable embedded web templates
 - `extra_script.py`: regenerates embedded HTML blocks in `src/FrameWeb.cpp`
 - `Data/config.json`: configuration example
@@ -217,6 +217,44 @@ Typical access:
 
 Embedded pages are sourced from `src/FrameWeb.html` and injected into `src/FrameWeb.cpp` by `extra_script.py` (pre-build via `platformio.ini`).
 
+### custom_out_zip mode
+
+FrameWeb supports two generated payload modes for `HTTP_*` constants:
+
+- `custom_out_zip = plain`: generated chunks are plain HTML strings.
+- `custom_out_zip = zip` or `zipped`: generated chunks use the FrameWeb zip format:
+  - `<raw_size>:<hex_zlib_payload>`
+
+When enabled, runtime decoding is automatic through `decodeHtmlChunk()` used by built-in pages (`simpleUpload`, `simpleIndex`, `simpleFirmware`, explorer).
+
+To enable the mode for a given PlatformIO environment, set the option in `platformio.ini`:
+
+```ini
+custom_out_zip = zip
+```
+
+To disable it, set it back to plain HTML:
+
+```ini
+custom_out_zip = plain
+```
+
+`extra_script.py` pre-build behavior is automatically aligned with this option:
+
+- If `custom_out_zip` is `zip` or `zipped`, generation uses zip mode (equivalent to `-z`).
+- Otherwise, generation outputs plain HTML strings.
+
+During pre-build, the script logs:
+
+- `PlatformIO env: xiao_esp32s3`
+- `PlatformIO section: [env:xiao_esp32s3]`
+- `custom_out_zip=zipped -> zip generation ON`
+
+Suggested configuration:
+
+- `custom_out_zip = plain` for environments that should generate plain HTML.
+- `custom_out_zip = zip` or `zipped` for environments that should generate zipped HTML.
+
 Do not manually edit generated sections between:
 
 - `//---- Start Generated`
@@ -224,7 +262,7 @@ Do not manually edit generated sections between:
 
 ## Demo Highlights
 
-`src/demo1.cpp` includes:
+`src/examples/demo1.cpp` includes:
 
 - LED heartbeat
 - NTP synchronization
@@ -237,6 +275,16 @@ Do not manually edit generated sections between:
 - Wi-Fi portal issues: enable/check `DEBUG_FRAMEWEB` serial logs.
 - Missing web pages: check SPIFFS and keep `UseToolsLocal=true`.
 - OTA issues: verify credentials and `.bin` image.
+
+If your build picks up demo sources from dependencies, explicitly exclude `demo*.cpp` files in `platformio.ini` using `build_src_filter`, for example:
+
+```ini
+build_src_filter = +<*>
+  -<.git/>
+  -<.svn/>
+  -<main_wifi.cpp>
+  -<.pio/libdeps/esp32-poe/Esp32_Framework/src/examples/demo1.cpp>
+```
 
 ## Security Note
 

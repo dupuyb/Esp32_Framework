@@ -15,7 +15,8 @@
  */
 
 #include <Arduino.h>
-#define DEBUG_FRAMEWEB // Enable debug output from FrameWeb
+
+#define DEBUG_FRAMEWEB    ///< Enable debug output for FrameWeb (prefix [F])
 #include "FrameWeb.h"
 
 // ============ Framework Instance ============
@@ -287,7 +288,7 @@ void loop() {
             } else if (cmd == 'f') { // Force new configuration (MAC, hostname, credentials)
                 Serial.println("Mode config feilds (Mac, Host,...)");
                 forceNewMac();
-            }
+            } 
             cmd = ' ';
         }
     }
@@ -319,4 +320,5 @@ void loop() {
         frame.listDir(ls, SPIFFS, "/", 0);
         FDBXLN(ls);
     }
+
 }

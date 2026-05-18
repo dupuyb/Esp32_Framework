@@ -15,6 +15,13 @@
  *  - mDNS for device discovery
  *  - SPIFFS file system management
  *  - HTTP basic authentication
+ *
+ * Optional generated HTML compression mode:
+ *  - Controlled by custom_out_zip in platformio.ini.
+ *  - When custom_out_zip = zip, generated HTTP_* chunks use FrameWeb payload
+ *    format "<raw_size>:<hex_zlib_payload>" and are decoded at runtime by
+ *    decodeHtmlChunk().
+ *  - Otherwise, generated HTTP_* chunks stay as plain HTML strings.
  */
 
 // ============ Dependency includes ============
@@ -286,6 +293,31 @@ public:
    * @return String Complete HTML document for the /update page.
    */
   String simpleFirmware();
+
+  /**
+   * @brief Compress a String to the FrameWeb ASCII-safe zip payload format.
+   * @param input Source text to compress.
+   * @return String encoded as "<original_size>:<hex_zlib_payload>".
+   */
+  String zipString(const String& input);
+
+  /**
+   * @brief Decompress a payload previously produced by zipString().
+   * @param input Encoded payload in the format "<original_size>:<hex_zlib_payload>".
+   * @return String Decompressed text, or an empty String on error.
+   */
+  String unzipString(const String& input);
+
+  /**
+   * @brief Read a generated HTTP_* chunk and decode it when needed.
+   * @param chunk PROGMEM chunk symbol (for example HTTP_HEADAL, HTTP_BODYUP, HTTP_FIRM0).
+   * @return String Plain HTML content, decoded automatically if zip payload format is detected.
+   *
+  * This method is used by simpleUpload(), simpleIndex(), simpleFirmware(), and explorer page
+  * generation so runtime behavior is identical whether zipped HTML generation is enabled or not.
+   */
+  String decodeHtmlChunk(const char* chunk);
+
 
   /**
    * @brief Serve a file from SPIFFS or fall back to a built-in page.

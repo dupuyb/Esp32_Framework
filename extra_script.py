@@ -24,6 +24,8 @@ Execution modes
          python3 extra_script.py -f src/FrameWeb.html
      - Generate compressed C++ lines to stdout:
          python3 extra_script.py -i src/FrameWeb.html
+     - Generate FrameWeb-compatible zipped payloads:
+         python3 extra_script.py -z -i src/FrameWeb.html
      - Generate compressed C++ lines to file:
          python3 extra_script.py -i src/FrameWeb.html -o out.cpp
      - Build a standalone wrapper skeleton:
@@ -42,6 +44,7 @@ import datetime
 import os
 import re
 import sys
+import zlib
 from pathlib import Path
 from tempfile import mkstemp
 from shutil import move
@@ -51,6 +54,11 @@ try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
+
+try:
+    Import("env")
+except Exception:
+    env = None
 
 
 PROJECT_ROOT = Path("platformio.ini").resolve().parent
@@ -73,6 +81,13 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--ofile", "--outputfile", dest="outputfile", default="")
     parser.add_argument("-f", "--ffile", "--findfile", dest="findfile", default="")
     parser.add_argument("-b", "--bfile", "--buildfile", dest="buildfile", default="")
+    parser.add_argument(
+        "-z",
+        "--zip",
+        dest="zip_output",
+        action="store_true",
+        help="compress HTML payloads using the FrameWeb size:hex-zlib format",
+    )
     return parser
 
 
@@ -124,6 +139,13 @@ def _extract_template_keys(content: str) -> list[str]:
     pattern = re.compile(REGPAT, re.IGNORECASE)
     tags = sorted(set(match.group(1) for match in pattern.finditer(content)))
     return tags
+
+
+def _frameweb_zip_string(text: str) -> str:
+    """Compress text in the same size:hex-zlib format expected by FrameWeb."""
+    raw = text.encode("utf-8")
+    compressed = zlib.compress(raw, level=9)
+    return f"{len(raw)}:{compressed.hex().upper()}"
 
 
 def replace(source_file_path: str, code: list[str]) -> None:
@@ -196,12 +218,19 @@ def findPattern(filename: str) -> tuple[list[str], int]:
     return tags, strlen
 
 
-def conpressHtml(inputfile: str) -> list[str]:
-    """Legacy typo kept for backward compatibility."""
+def conpressHtml(inputfile: str, zip_output: bool = False) -> list[str]:
+    """Legacy typo kept for backward compatibility.
+
+    When zip_output is True, each generated payload is compressed in the
+    FrameWeb-compatible format: <original_size>:<hex_zlib_payload>.
+    """
     path = _require_existing_file(inputfile)
     lines = path.read_text(encoding="utf-8").splitlines()
 
     ret: list[str] = []
+    total_cpp_length = 0
+    total_raw_length = 0
+    total_payload_length = 0
     ret.append(
         "//---- Start Generated from "
         + str(inputfile)
@@ -213,13 +242,31 @@ def conpressHtml(inputfile: str) -> list[str]:
     current_payload: list[str] = []
 
     def flush_block() -> None:
-        nonlocal current_decl, current_payload
+        nonlocal current_decl, current_payload, total_cpp_length, total_raw_length, total_payload_length
         if not current_decl:
             return
-        payload = "".join(current_payload)
-        cpp_line = f"{current_decl} \"{payload}\";"
+        raw_payload = "".join(current_payload)
+        payload = _frameweb_zip_string(raw_payload) if zip_output else raw_payload
+        payload_cpp = payload.replace("\\", "\\\\").replace('"', '\\"')
+        cpp_line = f"{current_decl} \"{payload_cpp}\";"
+        raw_len = len(raw_payload.encode("utf-8"))
+        payload_len = len(payload.encode("utf-8"))
+        gain_len = raw_len - payload_len
+        gain_pct = (gain_len * 100.0 / raw_len) if raw_len else 0.0
+
         ret.append(cpp_line)
-        ret.append(f"//---- len : {len(cpp_line)} bytes")
+        if zip_output:
+            ret.append(
+                f"//---- len : {len(cpp_line)} bytes | raw={raw_len} | payload={payload_len} | gain={gain_len} ({gain_pct:.1f}%)"
+            )
+        else:
+            ret.append(
+                f"//---- len : {len(cpp_line)} bytes | raw={raw_len} | payload={payload_len}"
+            )
+
+        total_cpp_length += len(cpp_line)
+        total_raw_length += raw_len
+        total_payload_length += payload_len
         current_decl = ""
         current_payload = []
 
@@ -233,24 +280,33 @@ def conpressHtml(inputfile: str) -> list[str]:
             continue
 
         if current_decl:
-            escaped = stripped.replace("\\", "\\\\").replace('"', '\\"')
-            current_payload.append(escaped)
+            current_payload.append(stripped)
 
     flush_block()
     if len(ret) == 1:
         raise ValueError(f"no HTML marker found ({HTML_MARKER_PREFIX}) in {path}")
 
+    if zip_output:
+        total_gain = total_raw_length - total_payload_length
+        total_gain_pct = (total_gain * 100.0 / total_raw_length) if total_raw_length else 0.0
+        ret.append(
+            f"//---- total len : {total_cpp_length} bytes | raw={total_raw_length} | payload={total_payload_length} | gain={total_gain} ({total_gain_pct:.1f}%)"
+        )
+    else:
+        ret.append(
+            f"//---- total len : {total_cpp_length} bytes | raw={total_raw_length} | payload={total_payload_length}"
+        )
     ret.append("//---- End Generated")
     return ret
 
 
-def compressHtml(inputfile: str, outputfile: str) -> None:
+def compressHtml(inputfile: str, outputfile: str, zip_output: bool = False) -> None:
     """Convert HTML marker blocks into C++ declarations.
 
     If outputfile is empty, lines are printed to stdout.
     Otherwise they are written to the target file.
     """
-    lines = conpressHtml(inputfile)
+    lines = conpressHtml(inputfile, zip_output=zip_output)
     if outputfile.strip():
         out_path = _resolve_path(outputfile)
         out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -260,7 +316,7 @@ def compressHtml(inputfile: str, outputfile: str) -> None:
             print(line)
 
 
-def buildEsp32Cpp(inputfile: str, outputfile: str) -> None:
+def buildEsp32Cpp(inputfile: str, outputfile: str, zip_output: bool = False) -> None:
     """Generate a standalone C++ wrapper file from the HTML source.
 
     The output includes:
@@ -271,7 +327,7 @@ def buildEsp32Cpp(inputfile: str, outputfile: str) -> None:
     if not outputfile.strip():
         raise ValueError("output file is required for build mode (-b)")
 
-    html_lines = conpressHtml(inputfile)
+    html_lines = conpressHtml(inputfile, zip_output=zip_output)
     tags, _ = findPattern(inputfile)
     out_path = _resolve_path(outputfile)
     guard = _to_header_guard(out_path)
@@ -332,11 +388,19 @@ def selesctApp(argv: list[str]) -> int:
     if args.buildfile.strip():
         if not args.inputfile.strip():
             parser.error("-i/--ifile is required with -b/--bfile")
-        buildEsp32Cpp(args.inputfile.strip(), args.buildfile.strip())
+        buildEsp32Cpp(
+            args.inputfile.strip(),
+            args.buildfile.strip(),
+            zip_output=args.zip_output,
+        )
         return 0
 
     if args.inputfile.strip():
-        compressHtml(args.inputfile.strip(), args.outputfile.strip())
+        compressHtml(
+            args.inputfile.strip(),
+            args.outputfile.strip(),
+            zip_output=args.zip_output,
+        )
         return 0
 
     parser.print_help()
@@ -356,7 +420,16 @@ def _load_platformio_config() -> tuple[configparser.ConfigParser, Path]:
 
 
 def _detect_env_section(config: configparser.ConfigParser) -> str:
-    pio_env = os.environ.get("PIOENV", "").strip()
+    pio_env = ""
+    if env is not None:
+        try:
+            pio_env = str(env.subst("$PIOENV")).strip()
+        except Exception:
+            pio_env = ""
+
+    if not pio_env:
+        pio_env = os.environ.get("PIOENV", "").strip()
+
     if pio_env:
         section = f"env:{pio_env}"
         if config.has_section(section):
@@ -372,6 +445,12 @@ def _detect_env_section(config: configparser.ConfigParser) -> str:
     raise ValueError("no [env:*] section found in platformio.ini")
 
 
+def _is_zip_output_enabled(config: configparser.ConfigParser, section: str) -> bool:
+    """Return True when custom_out_zip requests zipped HTML generation."""
+    value = config.get(section, "custom_out_zip", fallback="plain").strip().lower()
+    return value in {"zip", "zipped", "true", "on", "yes", "1"}
+
+
 def run_platformio_pre_script() -> int:
     """Run automatic pre-build generation using values from platformio.ini.
 
@@ -380,6 +459,7 @@ def run_platformio_pre_script() -> int:
     """
     config, _ = _load_platformio_config()
     section = _detect_env_section(config)
+    pio_env = section.removeprefix("env:")
 
     inputfile = config.get(section, "custom_in_html", fallback="").strip()
     outputfile = config.get(section, "custom_out_h", fallback="").strip()
@@ -388,13 +468,20 @@ def run_platformio_pre_script() -> int:
             f"custom_in_html/custom_out_h missing in [{section}] of platformio.ini"
         )
 
+    print(f"PlatformIO env: {pio_env}")
+    print(f"PlatformIO section: [{section}]")
     print(f"---> EXTRACT HTML FILE :{inputfile}--------------------")
     tg, ln = findPattern(inputfile)
     print("Key list   :", tg)
     print("Number Key :", len(tg))
     print("Max Key len:", ln)
 
-    code = conpressHtml(inputfile)
+    output_path = _resolve_path(outputfile)
+    zip_output = _is_zip_output_enabled(config, section)
+    zip_mode = config.get(section, "custom_out_zip", fallback="plain").strip()
+    print(f"custom_out_zip={zip_mode} -> zip generation {'ON' if zip_output else 'OFF'}")
+
+    code = conpressHtml(inputfile, zip_output=zip_output)
     replace(outputfile, code)
     print(f"---> END OF HTML FILE :{outputfile}--------------------")
     return 0

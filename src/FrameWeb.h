@@ -55,19 +55,24 @@
 // ============ Debug macros ============
 /** 
  * Macros for debug output with "[F]" prefix (FrameWeb)
- * These macros are disabled if DEBUG_FRAMEWEB is not defined
- */
-#ifdef DEBUG_FRAMEWEB
-  #define FDBX(...) {Serial.print("[F]");Serial.print(__VA_ARGS__);}   ///< Simple output
-  #define FDBXLN(...) {Serial.print("[F]");Serial.println(__VA_ARGS__);}   ///< Output with newline
-  #define FDBXMF(...) {Serial.print("[F]");Serial.printf(__VA_ARGS__);}   ///< Formatted output
+ * Logging is enabled when LOG_FRAMEWEB_ENABLED is defined in build_flags.
+ * Current implementation uses presence/absence of the flag only.
+ * Example:
+ *   -D LOG_FRAMEWEB_ENABLED
+ * Any numeric value enables FDBX/FDBXLN/FDBXMF.
+ */ 
+
+#ifdef LOG_FRAMEWEB_ENABLED
+#define FDBX(x) do { Serial.print("[F]"); Serial.print(x); } while (0)
+#define FDBXLN(x) do { Serial.print("[F]"); Serial.println(x); } while (0)
+#define FDBXMF(...) do { Serial.print("[F]"); Serial.printf(__VA_ARGS__); } while (0)
 #else
-  #define FDBX(...)
-  #define FDBXLN(...)
-  #define FDBXMF(...)
+#define FDBX(x) 
+#define FDBXLN(x) 
+#define FDBXMF(...) 
 #endif
 
-#define FrameVersion "1.3.3"   ///< Framework version
+#define FrameVersion "1.4.0"   ///< Framework version
 
 /**
  * @struct Config

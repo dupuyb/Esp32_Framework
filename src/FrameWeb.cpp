@@ -15,7 +15,7 @@
 */
 
 // Zip generation mode is controlled by platformio.ini custom_out_zip.
-#define DEBUG_FRAMEWEB    ///< Enable debug output for FrameWeb (prefix [F])
+// #define DEBUG_FRAMEWEB    ///< Enable debug output for FrameWeb (prefix [F])
 #include "FrameWeb.h"
 #include <rom/miniz.h>
 
@@ -29,7 +29,7 @@
  //! It is generated from src/FrameWeb.html. Any manual changes will be lost at the next generation.
  //! To modify HTML content, edit src/FrameWeb.html and regenerate FrameWeb.cpp using extra_script.py.
  //! See platformio.ini for the extra_script.py configuration used during the build process.
-//---- Start Generated from src/FrameWeb.html file --- 2026-05-18 19:03:09
+//---- Start Generated from src/FrameWeb.html file --- 2026-05-18 22:29:11
 const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>ESP32</title><style>:root {--primary: #4CAF50;--primary-dark: #45a049;--bg-light: #f5f5f5;--bg-item: #f9f9f9;--shadow: 0 2px 4px rgba(0,0,0,.1);--radius: 8px;}* { margin: 0; padding: 0; box-sizing: border-box; }body { font-family: Arial, sans-serif; background: var(--bg-light); padding: 10px; color: #333; }.container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }.section-title, header { border-bottom: 2px solid #ddd; margin-bottom: 15px; padding-bottom: 10px; }header { text-align: center; border-color: var(--primary); margin-bottom: 30px; }h1 { background: linear-gradient(135deg, #87CEEB, var(--primary)); color: #fff; padding: 15px; border-radius: 5px; }.action-item, .form-group {display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;padding: 10px; background: var(--bg-item); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 10px;}.button-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }button {padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px;cursor: pointer; transition: 0.3s;}button:hover { background: var(--primary-dark); }.system-actions { background: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }.footnotes { font-size: 12px; color: #666; background: #fffacd; border-left: 4px solid #f0ad4e; padding: 15px; border-radius: 4px; }@media (max-width: 768px) {.action-item, .form-group { grid-template-columns: 1fr; }.button-group { justify-content: flex-start; }h1 { font-size: 1.2rem; }}</style></head>";
 //---- len : 1800 bytes | raw=1762 | payload=1762
 const char HTTP_BODYUP[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Uploader</h1></header><p class='message'>Transfer a file to SPIFFS. Gzip supported.</p><div class='section'><div class='section-title'>File Upload</div><div class='action-list'><div class='action-item'><div>- Select a file to upload to the EFS.</div><div class='button-group'><form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'><button type='submit' name='submit'>Upload</button></form></div></div></div></div><div style='text-align:center;'><button onclick=\"window.location='/';\">Back</button></div></div></body></html>";
@@ -415,14 +415,14 @@ void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ )
   WiFi.setHostname(config.HostName);
   
   if ( ! wifiManager.autoConnect( config.HostName) ) {
-    FDBX("Failed to connect (timeout).");
+    FDBXLN(F("Failed to connect (timeout)."));
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
     ESP.restart();
     delay(5000);
   }
   // Wait for connection
-  FDBX(F("Waiting for WiFi connection..."));
+  FDBXLN(F("Waiting for WiFi connection..."));
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); FDBX(".");
   }
@@ -602,7 +602,7 @@ String FrameWeb::zipString(const String& input) {
   std::unique_ptr<tdefl_compressor> comp(new (std::nothrow) tdefl_compressor());
 
   if (!outBuf || !comp) {
-    FDBXLN("zipString: allocation failed (heap pressure). freeHeap=" + String(ESP.getFreeHeap()));
+    FDBXMF("zipString: allocation failed (heap pressure). freeHeap=%u\n\r", ESP.getFreeHeap());
     return String();
   }
 
@@ -774,8 +774,7 @@ void FrameWeb::handleFileUpload(){                      // upload a new file to 
       if(SPIFFS.exists(pathWithGz))                      // version of that file must be deleted (if it exists)
          SPIFFS.remove(pathWithGz);
     }
-    FDBX(F("handleFileUpload Name: "));
-    FDBXLN(path);
+    FDBXMF("handleFileUpload Name: %s\n\r", path.c_str());
     fsUploadFile = SPIFFS.open(path, "w");               // Open the file for writing in SPIFFS (create if it doesn't exist)
     path = String();
   } else if(upload.status == UPLOAD_FILE_WRITE){
@@ -784,8 +783,7 @@ void FrameWeb::handleFileUpload(){                      // upload a new file to 
   } else if(upload.status == UPLOAD_FILE_END){
     if(fsUploadFile) {                                    // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
-      FDBX(F("handleFileUpload Size: "));
-      FDBXLN(upload.totalSize);
+      FDBXMF("handleFileUpload Size: %d\n\r", upload.totalSize);
       server.sendHeader("Location","/success.html");      // Redirect the client to the success page
       server.send(303);
     } else {
@@ -1001,7 +999,7 @@ void FrameWeb::startMDNS() {
   // - second argument is the IP address to advertise   we send our IP address on the WiFi network
   if (!MDNS.begin(config.HostName))
     FDBXLN(F("Error setting up MDNS responder!"));
-  FDBX( F("mDNS responder started: ")); FDBXLN(config.HostName);
+  FDBXMF("mDNS responder started: %s\n\r", config.HostName);
   MDNS.addService("http",  "tcp", 80);
   MDNS.addService("ws",    "tcp", 81);
   MDNS.addService("esp32", "tcp", 8888); // Announce esp32 service port 8888 TCP
@@ -1045,7 +1043,7 @@ void FrameWeb::loop() {
     ESP.restart(); // Restart in case of error
   }
   if (RestoreAsap) {             // Reset to factory settings
-    FDBXLN("Format SPIFS...");
+    FDBXLN(F("Format SPIFS..."));
     SPIFFS.format();
     wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
     ESP.restart();

@@ -88,6 +88,37 @@ Notes:
 - `UseToolsLocal=true` enables built-in pages when SPIFFS pages are missing.
 - `ResetWifi=true` triggers Wi-Fi credentials reset in the next loop cycle.
 
+## Debug Logging Flag
+
+FrameWeb debug traces use these macros:
+
+- `FDBX(x)`: print without newline
+- `FDBXLN(x)`: print with newline
+- `FDBXMF(...)`: formatted `printf`-style print
+
+To enable them, define `LOG_FRAMEWEB_ENABLED` in `platformio.ini` build flags:
+
+```ini
+build_flags = -D LOG_FRAMEWEB_ENABLED
+```
+
+Current behavior is presence-based: if `LOG_FRAMEWEB_ENABLED` is defined, logs are enabled.
+The numeric value is currently not used for log filtering.
+
+### Troubleshooting Logs
+
+- No `[F]` logs on serial output:
+  - Check `build_flags` includes `-D LOG_FRAMEWEB_ENABLED` in the active environment.
+  - Confirm the code uses `FDBX`, `FDBXLN`, or `FDBXMF` (not plain `Serial.print` if you expect `[F]` prefix).
+- Serial monitor shows unreadable characters:
+  - Verify monitor speed matches firmware speed (default: `115200`).
+- Logs still absent after editing `platformio.ini`:
+  - Rebuild the correct environment explicitly (`-e esp32dev` or `-e xiao_esp32s3`).
+  - Clean and rebuild if needed.
+- Build succeeds but upload target shows no logs:
+  - Check `monitor_port`/`upload_port` for the selected board.
+  - Ensure the board actually rebooted on the same USB/UART interface you monitor.
+
 ## HTTP API
 
 - `GET /`: index page (SPIFFS or built-in tools page)
@@ -283,7 +314,7 @@ build_src_filter = +<*>
   -<.git/>
   -<.svn/>
   -<main_wifi.cpp>
-  -<.pio/libdeps/esp32-poe/Esp32_Framework/src/examples/demo1.cpp>
+  -<.pio/libdeps/esp32-poe/Esp32_Framework/src/examples/*>
 ```
 
 ## Security Note

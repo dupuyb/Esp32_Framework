@@ -16,7 +16,6 @@
 
 #include <Arduino.h>
 
-#define DEBUG_FRAMEWEB    ///< Enable debug output for FrameWeb (prefix [F])
 #include "FrameWeb.h"
 
 // ============ Framework Instance ============

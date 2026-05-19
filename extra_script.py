@@ -47,6 +47,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import os
 import re
 import sys
@@ -161,6 +162,52 @@ def _frameweb_zip_string(text: str) -> str:
     return f"{len(raw)}:{compressed.hex().upper()}"
 
 
+def _compute_file_sha256(path_text: str) -> str:
+    path = _require_existing_file(path_text)
+    digest = hashlib.sha256()
+    with open(path, "rb") as source_file:
+        while True:
+            chunk = source_file.read(8192)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _extract_generated_hash_from_cpp(path_text: str) -> str | None:
+    path = _require_existing_file(path_text)
+    hash_pattern = re.compile(r"\bsha256=([0-9a-fA-F]{64})\b")
+
+    with open(path, "r", encoding="utf-8") as source_file:
+        for line in source_file:
+            if line.startswith(CPP_START_MARKER):
+                match = hash_pattern.search(line)
+                return match.group(1).lower() if match else None
+    return None
+
+
+def _extract_generated_meta_from_cpp(path_text: str) -> tuple[str | None, str | None]:
+        """Read stored generation metadata from Start marker.
+
+        Expected format contains optional fields:
+            ... | sha256=<64-hex> | zip_mode=<plain|zip|zip_if_best>
+        """
+        path = _require_existing_file(path_text)
+        hash_pattern = re.compile(r"\bsha256=([0-9a-fA-F]{64})\b")
+        mode_pattern = re.compile(r"\bzip_mode=([a-zA-Z0-9_]+)\b")
+
+        with open(path, "r", encoding="utf-8") as source_file:
+                for line in source_file:
+                        if line.startswith(CPP_START_MARKER):
+                                hash_match = hash_pattern.search(line)
+                                mode_match = mode_pattern.search(line)
+                                source_hash = hash_match.group(1).lower() if hash_match else None
+                                zip_mode = mode_match.group(1).strip().lower() if mode_match else None
+                                return source_hash, zip_mode
+
+        return None, None
+
+
 def replace(source_file_path: str, code: list[str]) -> None:
     """Replace only the generated block in a C++ file."""
     source_path = _require_existing_file(source_file_path)
@@ -235,6 +282,8 @@ def conpressHtml(
     inputfile: str,
     zip_output: bool = False,
     zip_if_best: bool = False,
+    source_hash: str | None = None,
+    zip_mode: str = "plain",
 ) -> list[str]:
     """Legacy typo kept for backward compatibility.
 
@@ -251,11 +300,17 @@ def conpressHtml(
     total_str_length = 0
     total_raw_length = 0
     total_payload_length = 0
+    if source_hash is None:
+        source_hash = _compute_file_sha256(inputfile)
     ret.append(
         "//---- Start Generated from "
         + str(inputfile)
         + " file --- "
         + str(datetime.datetime.now().replace(microsecond=0))
+        + " | sha256="
+        + source_hash
+        + " | zip_mode="
+        + zip_mode
     )
 
     current_decl = ""
@@ -334,6 +389,7 @@ def compressHtml(
     outputfile: str,
     zip_output: bool = False,
     zip_if_best: bool = False,
+    zip_mode: str = "plain",
 ) -> None:
     """Convert HTML marker blocks into C++ declarations.
 
@@ -344,6 +400,8 @@ def compressHtml(
         inputfile,
         zip_output=zip_output,
         zip_if_best=zip_if_best,
+        source_hash=_compute_file_sha256(inputfile),
+        zip_mode=zip_mode,
     )
     if outputfile.strip():
         out_path = _resolve_path(outputfile)
@@ -568,7 +626,29 @@ def run_platformio_pre_script() -> int:
         print("Number Key :", len(tg))
         print("Max Key len:", ln)
 
-        code = conpressHtml(inputfile, zip_output=zip_output, zip_if_best=zip_if_best)
+        source_hash = _compute_file_sha256(inputfile)
+        existing_hash, existing_zip_mode = _extract_generated_meta_from_cpp(outputfile)
+        if existing_hash == source_hash and existing_zip_mode == zip_mode:
+            print(
+                f"[INFO] HTML unchanged for {inputfile}. "
+                f"Skip update."
+            )
+            print(f"---> [{idx}/{len(inputfiles)}] END OF HTML FILE :{outputfile}--------------------")
+            continue
+
+        if existing_hash == source_hash and existing_zip_mode != zip_mode:
+            print(
+                f"[INFO] Zip mode changed for {inputfile}: "
+                f"{existing_zip_mode or 'unknown'} -> {zip_mode}. Force regeneration."
+            )
+
+        code = conpressHtml(
+            inputfile,
+            zip_output=zip_output,
+            zip_if_best=zip_if_best,
+            source_hash=source_hash,
+            zip_mode=zip_mode,
+        )
         replace(outputfile, code)
         print(f"---> [{idx}/{len(inputfiles)}] END OF HTML FILE :{outputfile}--------------------")
 

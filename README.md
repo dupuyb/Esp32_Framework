@@ -322,6 +322,37 @@ custom_out_zip=zip -> zip generation ON
 custom_out_zip=zip_if_best -> best-size generation ON
 ```
 
+### Build terminal output
+
+During PlatformIO pre-build, `extra_script.py` logs a summary to the terminal. Example output for a two-file generation (FrameWeb library + project-local `eau.html`):
+
+```
+========================================================================
+=== FrameWeb extra_script.py START (PlatformIO pre-build generation) ===
+------------------------------------------------------------------------
+PlatformIO env: esp32dev
+PlatformIO section: [env:esp32dev]
+Input/output pairs: 2
+custom_out_zip=plain -> zip generation OFF
+---> [1/2] EXTRACT HTML FILE :.pio/libdeps/esp32dev/Esp32_Framework/src/FrameWeb.html--------------------
+Key list   : []
+Number Key : 0
+Max Key len: 0
+---> [1/2] END OF HTML FILE :.pio/libdeps/esp32dev/Esp32_Framework/src/FrameWeb.cpp--------------------
+---> [2/2] EXTRACT HTML FILE :src/eau.html--------------------
+Key list   : ['Cmd', 'DATE', 'DFE', 'FL', 'HOS', 'IP', 'IPL', 'MAC', 'MFREE', 'MT', 'RB', 'REC', 'TITLE', 'TOE', 'Tst', 'VL']
+Number Key : 16
+Max Key len: 5
+---> [2/2] END OF HTML FILE :include/eau.h--------------------
+------------------------------------------------------------------------
+=== FrameWeb extra_script.py END (PlatformIO pre-build generation) =====
+========================================================================
+```
+
+- **Key list**: placeholder keys found in the HTML (e.g. `##Cmd##`, `##DATE##` ...) — empty if the HTML has none.
+- **Number Key / Max Key len**: count and max length of discovered keys.
+- The banner is printed in blue in terminals that support ANSI colors.
+
 Generated stats comment per block:
 
 ```

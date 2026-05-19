@@ -38,6 +38,35 @@ Lightweight alternative:
 - `zip` or `zipped`: FrameWeb zipped payload (`<raw_size>:<hex_zlib_payload>`)
 - `zip_if_best` / `zib` / `best` / `auto`: per block, keeps smallest payload between plain and zipped
 
+### Terminal output
+
+During PlatformIO pre-build, `extra_script.py` logs a summary to the build terminal. Example for two input files:
+
+```
+========================================================================
+=== FrameWeb extra_script.py START (PlatformIO pre-build generation) ===
+------------------------------------------------------------------------
+PlatformIO env: esp32dev
+PlatformIO section: [env:esp32dev]
+Input/output pairs: 2
+custom_out_zip=plain -> zip generation OFF
+---> [1/2] EXTRACT HTML FILE :.pio/libdeps/esp32dev/Esp32_Framework/src/FrameWeb.html--------------------
+Key list   : []
+Number Key : 0
+Max Key len: 0
+---> [1/2] END OF HTML FILE :.pio/libdeps/esp32dev/Esp32_Framework/src/FrameWeb.cpp--------------------
+---> [2/2] EXTRACT HTML FILE :src/eau.html--------------------
+Key list   : ['Cmd', 'DATE', 'DFE', 'FL', 'HOS', 'IP', 'IPL', 'MAC', 'MFREE', 'MT', 'RB', 'REC', 'TITLE', 'TOE', 'Tst', 'VL']
+Number Key : 16
+Max Key len: 5
+---> [2/2] END OF HTML FILE :include/eau.h--------------------
+------------------------------------------------------------------------
+=== FrameWeb extra_script.py END (PlatformIO pre-build generation) =====
+========================================================================
+```
+
+The START/END banner is printed in blue (ANSI `\033[94m`) on terminals that support colors.
+
 `platformio.ini` also supports multiple html->cpp/h generations in one pass:
 
 - `custom_in_html` can list multiple HTML files

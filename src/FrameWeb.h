@@ -66,10 +66,12 @@
 #define FDBX(x) do { Serial.print("[F]"); Serial.print(x); } while (0)
 #define FDBXLN(x) do { Serial.print("[F]"); Serial.println(x); } while (0)
 #define FDBXMF(...) do { Serial.print("[F]"); Serial.printf(__VA_ARGS__); } while (0)
+#define FDBXERR(...) do { Serial.print("[F] Error: "); Serial.printf(__VA_ARGS__); } while (0)
 #else
 #define FDBX(x) 
 #define FDBXLN(x) 
 #define FDBXMF(...) 
+#define FDBXERR(...) do { Serial.print("[F] Error: "); Serial.printf(__VA_ARGS__); } while (0)
 #endif
 
 #define FrameVersion "1.4.0"   ///< Framework version

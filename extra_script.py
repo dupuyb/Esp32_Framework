@@ -26,6 +26,8 @@ Execution modes
          python3 extra_script.py -i src/FrameWeb.html
      - Generate FrameWeb-compatible zipped payloads:
          python3 extra_script.py -z -i src/FrameWeb.html
+     - Generate smallest payload per block (plain vs zipped):
+         python3 extra_script.py -zib -i src/FrameWeb.html
      - Generate compressed C++ lines to file:
          python3 extra_script.py -i src/FrameWeb.html -o out.cpp
      - Build a standalone wrapper skeleton:
@@ -87,6 +89,13 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="zip_output",
         action="store_true",
         help="compress HTML payloads using the FrameWeb size:hex-zlib format",
+    )
+    parser.add_argument(
+        "-zib",
+        "--zip-if-best",
+        dest="zip_if_best",
+        action="store_true",
+        help="for each block, keep the smallest payload between plain and size:hex-zlib",
     )
     return parser
 
@@ -218,17 +227,24 @@ def findPattern(filename: str) -> tuple[list[str], int]:
     return tags, strlen
 
 
-def conpressHtml(inputfile: str, zip_output: bool = False) -> list[str]:
+def conpressHtml(
+    inputfile: str,
+    zip_output: bool = False,
+    zip_if_best: bool = False,
+) -> list[str]:
     """Legacy typo kept for backward compatibility.
 
-    When zip_output is True, each generated payload is compressed in the
-    FrameWeb-compatible format: <original_size>:<hex_zlib_payload>.
+    zip_output=True forces FrameWeb compressed format:
+    <original_size>:<hex_zlib_payload>.
+
+    zip_if_best=True compares plain and compressed payload sizes per block,
+    then keeps the smallest one.
     """
     path = _require_existing_file(inputfile)
     lines = path.read_text(encoding="utf-8").splitlines()
 
     ret: list[str] = []
-    total_cpp_length = 0
+    total_str_length = 0
     total_raw_length = 0
     total_payload_length = 0
     ret.append(
@@ -242,29 +258,40 @@ def conpressHtml(inputfile: str, zip_output: bool = False) -> list[str]:
     current_payload: list[str] = []
 
     def flush_block() -> None:
-        nonlocal current_decl, current_payload, total_cpp_length, total_raw_length, total_payload_length
+        nonlocal current_decl, current_payload, total_str_length, total_raw_length, total_payload_length
         if not current_decl:
             return
         raw_payload = "".join(current_payload)
-        payload = _frameweb_zip_string(raw_payload) if zip_output else raw_payload
+        zipped_payload = _frameweb_zip_string(raw_payload)
+        raw_payload_len = len(raw_payload.encode("utf-8"))
+        zipped_payload_len = len(zipped_payload.encode("utf-8"))
+
+        if zip_if_best:
+            payload = zipped_payload if zipped_payload_len < raw_payload_len else raw_payload
+        elif zip_output:
+            payload = zipped_payload
+        else:
+            payload = raw_payload
+
         payload_cpp = payload.replace("\\", "\\\\").replace('"', '\\"')
         cpp_line = f"{current_decl} \"{payload_cpp}\";"
+        str_len = len(payload_cpp.encode("utf-8"))
         raw_len = len(raw_payload.encode("utf-8"))
         payload_len = len(payload.encode("utf-8"))
         gain_len = raw_len - payload_len
         gain_pct = (gain_len * 100.0 / raw_len) if raw_len else 0.0
 
         ret.append(cpp_line)
-        if zip_output:
+        if zip_output or zip_if_best:
             ret.append(
-                f"//---- len : {len(cpp_line)} bytes | raw={raw_len} | payload={payload_len} | gain={gain_len} ({gain_pct:.1f}%)"
+                f"//---- len : {str_len} bytes | source={raw_len} | payload={payload_len} | gain={gain_len} ({gain_pct:.1f}%)"
             )
         else:
             ret.append(
-                f"//---- len : {len(cpp_line)} bytes | raw={raw_len} | payload={payload_len}"
+                f"//---- len : {str_len} bytes | source={raw_len} | payload={payload_len}"
             )
 
-        total_cpp_length += len(cpp_line)
+        total_str_length += str_len
         total_raw_length += raw_len
         total_payload_length += payload_len
         current_decl = ""
@@ -286,27 +313,34 @@ def conpressHtml(inputfile: str, zip_output: bool = False) -> list[str]:
     if len(ret) == 1:
         raise ValueError(f"no HTML marker found ({HTML_MARKER_PREFIX}) in {path}")
 
-    if zip_output:
+    if zip_output or zip_if_best:
         total_gain = total_raw_length - total_payload_length
         total_gain_pct = (total_gain * 100.0 / total_raw_length) if total_raw_length else 0.0
         ret.append(
-            f"//---- total len : {total_cpp_length} bytes | raw={total_raw_length} | payload={total_payload_length} | gain={total_gain} ({total_gain_pct:.1f}%)"
+            f"//---- total len : {total_str_length} bytes | source={total_raw_length} | payload={total_payload_length} | gain={total_gain} ({total_gain_pct:.1f}%)"
         )
     else:
         ret.append(
-            f"//---- total len : {total_cpp_length} bytes | raw={total_raw_length} | payload={total_payload_length}"
+            f"//---- total len : {total_str_length} bytes | source={total_raw_length} | payload={total_payload_length}"
         )
     ret.append("//---- End Generated")
     return ret
-
-
-def compressHtml(inputfile: str, outputfile: str, zip_output: bool = False) -> None:
+def compressHtml(
+    inputfile: str,
+    outputfile: str,
+    zip_output: bool = False,
+    zip_if_best: bool = False,
+) -> None:
     """Convert HTML marker blocks into C++ declarations.
 
     If outputfile is empty, lines are printed to stdout.
     Otherwise they are written to the target file.
     """
-    lines = conpressHtml(inputfile, zip_output=zip_output)
+    lines = conpressHtml(
+        inputfile,
+        zip_output=zip_output,
+        zip_if_best=zip_if_best,
+    )
     if outputfile.strip():
         out_path = _resolve_path(outputfile)
         out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -316,7 +350,12 @@ def compressHtml(inputfile: str, outputfile: str, zip_output: bool = False) -> N
             print(line)
 
 
-def buildEsp32Cpp(inputfile: str, outputfile: str, zip_output: bool = False) -> None:
+def buildEsp32Cpp(
+    inputfile: str,
+    outputfile: str,
+    zip_output: bool = False,
+    zip_if_best: bool = False,
+) -> None:
     """Generate a standalone C++ wrapper file from the HTML source.
 
     The output includes:
@@ -327,7 +366,11 @@ def buildEsp32Cpp(inputfile: str, outputfile: str, zip_output: bool = False) -> 
     if not outputfile.strip():
         raise ValueError("output file is required for build mode (-b)")
 
-    html_lines = conpressHtml(inputfile, zip_output=zip_output)
+    html_lines = conpressHtml(
+        inputfile,
+        zip_output=zip_output,
+        zip_if_best=zip_if_best,
+    )
     tags, _ = findPattern(inputfile)
     out_path = _resolve_path(outputfile)
     guard = _to_header_guard(out_path)
@@ -392,6 +435,7 @@ def selesctApp(argv: list[str]) -> int:
             args.inputfile.strip(),
             args.buildfile.strip(),
             zip_output=args.zip_output,
+            zip_if_best=args.zip_if_best,
         )
         return 0
 
@@ -399,7 +443,8 @@ def selesctApp(argv: list[str]) -> int:
         compressHtml(
             args.inputfile.strip(),
             args.outputfile.strip(),
-            zip_output=args.zip_output,
+            zip_output=(args.zip_output or args.zip_if_best),
+            zip_if_best=args.zip_if_best,
         )
         return 0
 
@@ -445,10 +490,18 @@ def _detect_env_section(config: configparser.ConfigParser) -> str:
     raise ValueError("no [env:*] section found in platformio.ini")
 
 
-def _is_zip_output_enabled(config: configparser.ConfigParser, section: str) -> bool:
-    """Return True when custom_out_zip requests zipped HTML generation."""
+def _resolve_zip_mode(config: configparser.ConfigParser, section: str) -> tuple[bool, bool, str]:
+    """Resolve zip mode from custom_out_zip.
+
+    Returns:
+        (zip_output, zip_if_best, normalized_mode)
+    """
     value = config.get(section, "custom_out_zip", fallback="plain").strip().lower()
-    return value in {"zip", "zipped", "true", "on", "yes", "1"}
+    if value in {"zip_if_best", "zib", "best", "auto"}:
+        return True, True, "zip_if_best"
+    if value in {"zip", "zipped", "true", "on", "yes", "1"}:
+        return True, False, "zip"
+    return False, False, "plain"
 
 
 def run_platformio_pre_script() -> int:
@@ -477,11 +530,13 @@ def run_platformio_pre_script() -> int:
     print("Max Key len:", ln)
 
     output_path = _resolve_path(outputfile)
-    zip_output = _is_zip_output_enabled(config, section)
-    zip_mode = config.get(section, "custom_out_zip", fallback="plain").strip()
-    print(f"custom_out_zip={zip_mode} -> zip generation {'ON' if zip_output else 'OFF'}")
+    zip_output, zip_if_best, zip_mode = _resolve_zip_mode(config, section)
+    if zip_if_best:
+        print("custom_out_zip=zip_if_best -> best-size generation ON")
+    else:
+        print(f"custom_out_zip={zip_mode} -> zip generation {'ON' if zip_output else 'OFF'}")
 
-    code = conpressHtml(inputfile, zip_output=zip_output)
+    code = conpressHtml(inputfile, zip_output=zip_output, zip_if_best=zip_if_best)
     replace(outputfile, code)
     print(f"---> END OF HTML FILE :{outputfile}--------------------")
     return 0

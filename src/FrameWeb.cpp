@@ -7,15 +7,17 @@
   *
   * Generated HTML payload mode:
   * - Controlled by custom_out_zip in platformio.ini.
-  * - If custom_out_zip = zip, pre-generated HTTP_* chunks are stored as
-  *   FrameWeb zip payloads: "<raw_size>:<hex_zlib_payload>".
-  * - Otherwise, generated HTTP_* chunks are stored as plain HTML.
+  * - custom_out_zip = plain keeps HTTP_* chunks as plain HTML.
+  * - custom_out_zip = zip stores every chunk as FrameWeb zip payloads:
+  *   "<raw_size>:<hex_zlib_payload>".
+  * - custom_out_zip = zip_if_best stores, for each chunk, the smallest
+  *   payload between plain HTML and FrameWeb zip format.
   *
   * Runtime decoding is automatic through decodeHtmlChunk().
 */
 
 // Zip generation mode is controlled by platformio.ini custom_out_zip.
-// #define DEBUG_FRAMEWEB    ///< Enable debug output for FrameWeb (prefix [F])
+// LOG_FRAMEWEB_ENABLED enables FrameWeb debug output (prefix [F]).
 #include "FrameWeb.h"
 #include <rom/miniz.h>
 
@@ -25,26 +27,27 @@
  
 // ============ Pre-generated HTML (generated from FrameWeb.html) ============
 // These character strings PROGMEM are stored in Flash to save RAM
- //! Warning: The section between 'Start Generated' and 'End Generated' is auto-generated.
- //! It is generated from src/FrameWeb.html. Any manual changes will be lost at the next generation.
- //! To modify HTML content, edit src/FrameWeb.html and regenerate FrameWeb.cpp using extra_script.py.
- //! See platformio.ini for the extra_script.py configuration used during the build process.
-//---- Start Generated from src/FrameWeb.html file --- 2026-05-18 22:29:11
-const char HTTP_HEADAL[] PROGMEM = "<!DOCTYPE html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>ESP32</title><style>:root {--primary: #4CAF50;--primary-dark: #45a049;--bg-light: #f5f5f5;--bg-item: #f9f9f9;--shadow: 0 2px 4px rgba(0,0,0,.1);--radius: 8px;}* { margin: 0; padding: 0; box-sizing: border-box; }body { font-family: Arial, sans-serif; background: var(--bg-light); padding: 10px; color: #333; }.container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }.section-title, header { border-bottom: 2px solid #ddd; margin-bottom: 15px; padding-bottom: 10px; }header { text-align: center; border-color: var(--primary); margin-bottom: 30px; }h1 { background: linear-gradient(135deg, #87CEEB, var(--primary)); color: #fff; padding: 15px; border-radius: 5px; }.action-item, .form-group {display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;padding: 10px; background: var(--bg-item); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 10px;}.button-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }button {padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px;cursor: pointer; transition: 0.3s;}button:hover { background: var(--primary-dark); }.system-actions { background: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }.footnotes { font-size: 12px; color: #666; background: #fffacd; border-left: 4px solid #f0ad4e; padding: 15px; border-radius: 4px; }@media (max-width: 768px) {.action-item, .form-group { grid-template-columns: 1fr; }.button-group { justify-content: flex-start; }h1 { font-size: 1.2rem; }}</style></head>";
-//---- len : 1800 bytes | raw=1762 | payload=1762
+//! Warning: The section between 'Start Generated' and 'End Generated' is auto-generated.
+//! It is generated from src/FrameWeb.html. Any manual changes will be lost at the next generation.
+//! To modify HTML content, edit src/FrameWeb.html and regenerate FrameWeb.cpp using extra_script.py.
+//! See platformio.ini for the extra_script.py configuration used during the build process.
+//! stats: len=stored string content size (inside quotes), source=original UTF-8 HTML size, payload=stored UTF-8 payload size (plain or size:HEX_ZLIB), gain=source-payload
+//---- Start Generated from src/FrameWeb.html file --- 2026-05-19 12:24:48
+const char HTTP_HEADAL[] PROGMEM = "1762:78DA8D554D73DA3010FD2BEA7000779063F3156220D33425D766A6E9A14761C9468D2D792441A00CFFBD2BC9184248DAF104B26B6977DFDBB7CBF4D3B7EFF74FBF1EE76869CAE276BA6484DE4E4B66084A9744696666ED9F4F0F78DCAEBD82946CD65E73F6524965DA2895C23001A75E3835CB19656B9E32EC8C2EE2821B4E0AAC5352B0591C4610C57053B0DBF98FC77E6F7AE58DA9365BF84A949406ED30AE142F89DA26A835B8BF7B184693C6852951CFD63F24D1E006FC8B1C173C5F1AF06543FB781F37ACB4AE1BFB804B2F09952F098A50AFDAA001FCA97C413A51D73E611CC01145285FE9048DABCD64FF19ED10E4CBB9803B1354114AB9C8DDFF0BB9C19AFF71E6422ACA1406D704ED17926EE15A0684E08C94BC0000770AE07791264263CD14CFE03E499F7325578226684D54E78821384914475006905B480538FAFD3E24082DD7840BA65C751BCF72826E2277B8A917919591AF13B5B2CCA6F6E51E90FAECDE0A6A60354FFE95B74ECBEAB94CFB50B3D47029B0EB5F1759D5B8AA1A428C91D0004BB69605A7A845293D94D8BC8E87365A1DFCE8F5399A98866D0C26C010604B416A4C35486A7E7CB5B544823769FA75C0D81678424A0154128573CB00C4EDC4FD21657917B5C6D7F7F3F9D7EE59DCE0D80FC7E6B1570EC619B9434F14F13C593D7651984955629BBE423BCA755510D048AE3850633F319C029F6116D8AA141026CE54DDCE9C5487548E0C175337949C29E7A2CAEC8DA0A9B460198CCDA069D1398B678006478DBD6ED53E5CACC0140760A84196156C53176EA7CAD9F84559DB7E4ED0EF95363CDBE27A89F81B98096AC7C90545BB06188440F1E832B863D5AF5AE421244848C12E024A574ADBE395E45E5846C1A872DB3318A4B0AF27751DC952AEBDC2DFCBED5653E08663AB8168EC5BAFCFEEB4B2281BFF5B3E97D83E0C5F066B5248C3F461DBC03A6210A777BA3246A3D1DB154052FA6EFBA1304207ECBF0ADB7F2919E504754EB6D0F5081A14A0DD0792FF40E416D7998C2E8B431BA2CC619A4FD1873DC54A78B19F5EF99F93E995FB31FB0B17B95937";
+//---- len : 1537 bytes | source=1762 | payload=1537 | gain=225 (12.8%)
 const char HTTP_BODYUP[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Uploader</h1></header><p class='message'>Transfer a file to SPIFFS. Gzip supported.</p><div class='section'><div class='section-title'>File Upload</div><div class='action-list'><div class='action-item'><div>- Select a file to upload to the EFS.</div><div class='button-group'><form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'><input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'><button type='submit' name='submit'>Upload</button></form></div></div></div></div><div style='text-align:center;'><button onclick=\"window.location='/';\">Back</button></div></div></body></html>";
-//---- len : 806 bytes | raw=766 | payload=766
-const char HTTP_BODYID[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Embedded Tools</h1></header><p class='message'>Index.html file not found on the device.</p><div class='section'><div class='section-title'>Configuration Features</div><div class='action-list'><div class='action-item'><div>- Browse and manage files in the EFS.</div><div class='button-group'><button onclick=\"window.location='/explorer';\">Explorer</button><button onclick=\"window.location='/ls';\">List</button></div></div><div class='action-item'><div>- View the configuration file used at startup</div><div class='button-group'><button onclick=\"window.location='/config.json';\">Config.json</button></div></div><div class='action-item'><div>- Upload files to the Embedded File System</div><div class='button-group'><button onclick=\"window.location='/upload';\">Uploader</button></div></div><div class='action-item'><div>- Update ESP32 firmware over the air (OTA)</div><div class='button-group'><button onclick=\"window.location='/update';\">Update</button></div></div></div></div>";
-//---- len : 1071 bytes | raw=1023 | payload=1023
-const char HTTP_BODYI0[] PROGMEM = "<div class='section'><div class='section-title'>System Actions</div><div class='system-actions'><ul><li>- <b>Restart</b>: Reboots the ESP32.</li><li>- <b>Save Config</b>: Saves settings to EFS. *</li><li>- <b>Restore</b>: Restores defaults and deletes files. **</li><li>- <b>Reset WiFi</b>: Resets WiFi settings. ***</li></ul></div><div class='form-group'><label for='cmd'>- Select a command from the list:</label><form action='post' method='post' style='display: flex; gap: 8px; align-items: center;'><select id='cmd' name='cmd' style='flex: 1; min-width: 150px;'><option value='none'></option><option value='restart'>Restart</option><option value='save-config'>Save Config *</option><option value='reset-wifi'>Reset WiFi ***</option><option value='restore'>Restore **</option></select><button type='submit'>Apply</button></form></div></div>";
-//---- len : 880 bytes | raw=842 | payload=842
+//---- len : 768 bytes | source=766 | payload=766 | gain=0 (0.0%)
+const char HTTP_BODYID[] PROGMEM = "1023:78DAAD93514FC23010C7BF4AC3CBF4812DEAA36389929198986802FA5EDA1B54BB7669AF0CBEBDB715028B98A8E1A56B7BFBDFFDFE775BBEB47257E4526D98D0DCFB4922AC41AE0CB8A4C8D7C025387ADE14E5FCF5EE9695F512A404C916D66A9F6714A065FF5673485183F77C0549F164246CD335D69A554A03331659658391CC1A866B6012364A409A67CD80C18340654D72EE728C0A35E59E5A53A95570BCBB6433E0181C10122906321E555A794CCE0514421D03C5983D3ADB7A609C086B6EC843CFED998AB8E56C9E7EAFB00C889468E56C6828533C9243A195F89C8C5A65A46D536D458F3A4932D836DA3AEAF0FDA828F7FB3C8BBADFE8B5EF94CFE4E8A88A543FB91F987C57D0F676C4A085FD8482A7E172641EB9C3D05CC06C2C927E789A27514F8FC77FC1BF51BBB8DC8F056D1CCBE1AB9C7516E63B4F820B9087BE54071D8B9E0EE94FC4922341F63F50A55CDD7207CC6EC0F5F05C3976F5B278B8BE0871572A1277BBF3BC27EB172F0C69AC";
+//---- len : 743 bytes | source=1023 | payload=743 | gain=280 (27.4%)
+const char HTTP_BODYI0[] PROGMEM = "842:78DA7552CB6EE3300CFC15DE042CE07A1F5860E128068A457B2EEA43CFB24D3B04F4302C3A5DFF7D292BC9A64D7B31C4C70CC71CEA9E8ED05913E35E45EC988257B5BE4D164C6C51D5CD1A191DDC6FC9A84BE97CDFBED50B93EB42B5D85A5BAA0BD06DFD8C91CDCCBA6CEB0A9EB10D8123F001E1A179FAF5F34E97D278696ECC11E16FF0038D199012112232931F0517E0E1B1B9836FEF61694698F13C630B22F43898C5CA34E37B092CB22407B21885E09601195EE8912E2428C894B84C4FA813AC4C7F78B38721CCAE18E7B04CB2036B5AB420A9BDEA5CAF644C23123A06035D702E691AE6E0B655588A5C097382D43AD1405EE65E4D21B202877C08FD398ABC5ADCAB9EE264CD5AC160F1DF0E463355F0679297B134FA82C4935841879E71DE89A298E7539F1581370E4FCF136322AAE0C70E1CF9E2957A3E48F4FBBB700A3C4C49111C8D5DA4D5072F97A1CB9CFD589DB3E9EABFFB9FF745B1B7E836BFD5B5F9C9E02F999145DB40EACAB4ECCCD75AE41ED4F94AE0BAB5CC4BA975BB300B86D729C95A5A47A2FE7E9AEC2A07B1D5A4393973F67DFBBE01817A212B";
+//---- len : 830 bytes | source=842 | payload=830 | gain=12 (1.4%)
 const char HTTP_BODYI1[] PROGMEM = "<div class='footnotes'><p>* All parameters in config.json are affected.</p><p>** Login, password, and flags reset to default. EFS reformatted.</p><p>*** Device reboots in AP mode to select a new WiFi network.</p></div></div></body></html>";
-//---- len : 276 bytes | raw=238 | payload=238
-const char HTTP_FIRM0[] PROGMEM = "<body><div class='container'><header><h1>ESP32 Firmware Update</h1></header><p class='message'>ESP32 OTA firmware update. Default format: .bin.</p><div class='section'><div class='section-title'>Firmware Update</div><div class='action-item'><div>- ESP32 firmware .bin update.</div><div class='button-group'><form method='POST' action='#' enctype='multipart/form-data' id='upload_form' style='display: flex; gap: 8px; align-items: center; flex: 1;'><input type='file' accept='.bin' name='update' style='flex: 1; min-width: 150px;'><button type='submit'>Update</button></form></div></div></div><div class='section'><div class='section-title'>Progress</div><div class='action-item' style='justify-content: center;'><div id='prg' style='text-align: center; font-weight: bold; color: #4CAF50;'>progress: 0%</div></div></div><div class='footnotes'><p>Warning: ESP32 restarts automatically after update.</p></div><div style='text-align: center; margin-top: 20px;'><button onclick=\"window.location='/';\">Back</button></div></div><script>(function() {var form = document.getElementById('upload_form');var progress = document.getElementById('prg');if (!form || !progress) {return;}form.addEventListener('submit', function(e) {e.preventDefault();var data = new FormData(form);var xhr = new XMLHttpRequest();xhr.upload.addEventListener('progress', function(evt) {if (evt.lengthComputable) {var per = evt.loaded / evt.total;progress.textContent = 'progress: ' + Math.round(per * 100) + '%';}});xhr.addEventListener('load', function() {if (xhr.status >= 200 && xhr.status < 300) {progress.textContent = 'progress: 100%';} else {progress.textContent = 'update failed';}});xhr.addEventListener('error', function() {progress.textContent = 'network error';});xhr.open('POST', '/update');xhr.send(data);});})();</script></body></html>";
-//---- len : 1854 bytes | raw=1815 | payload=1815
+//---- len : 238 bytes | source=238 | payload=238 | gain=0 (0.0%)
+const char HTTP_FIRM0[] PROGMEM = "1815:78DA95956D8FD33810C7BFCA0002A7074DBB7048A7A68D04CBAE3809C4EAE074F70EB9C924F5AD63FB9CC9762BD8EF7EE33829ED2DF4746FD2C49EF9CF6F1EEC2ED7B6DCE5CB52DD40A165DBAE44610D4965D08B7CB94159A2E7DFB3FCE2E3D58BE770A97CB3951EE177574AC2E58C77F83198B951A3C1B695358AC1EBC3A757508D9E5DEF99C21BAC64A7092AEB1B490B48D7CAA4CB993B8269B120658DF8DEE29414698E718F894D8FEC653457844D14CAA710C1F65021F848765F60DD11B140ED6DE75821104383B4B1E54A5C7DF8F849400CB1128F04A02968E7908BC0D929273DCD82C394B5A500C52E9DD356969FC3AA8096769A8D4BD53A2D770BA834DE66504BB7805F1CBF49ADEAC8DE2EA04043E8B3DE68016719C328E33A8218B1525C0F6629D0D14A849C0418D960081952DB471BFDA15166BA55256DF8EBE59CE3B162CC76906CBB75A348E4636DE326F73CD0E743A90E9FFFB37957DED69EA7E574D746EEBFBA9654B59B8619E552EC0B328408C575BEDE9B13DED2B42FE041E9D875BA45556FD87D6D75994161B5F50B78F4F3F9ABCB9773167303D402E68F4FA758594BC612B64CE0F23FA437CAD48B61BA5882B8FD2DC88E2CCFB82AA4D63B9015837C1B3677287B02BC91BEE66E91E5C9787EDC2A6B0AAD8AEBD5C3AD32A5DDA6DA1632CEE34C640FF3D7B2B83EE8DC41266DE195A33CA93AD3573B99C0971BE9FB33092B286DD1351C3EAD912E3486D7D7BB5FCBE468822759F0184B76CA2BB46692A90A92077D80AF5FE1C1E8C7813D52E74D7617F65259961737ECF94EB5DC69F4C93889CF600F8BEC84A9F3180C87EB248938E1B0318AC12D5CB2DC1BFE4C826EDCBDDDF861F3CFF7EFDE12B9DFF0EF8E9BC5CEBC95C6ECBE8330C21E41DC106384A4F82DD5686ADA9CDB860FA55C6B1CEAE93004EC0D58194B98F51F6449EA6C544D43D7CFE364B3B5F83685029EC27B499B942F20532641ED27389BCF27BC2E1E8BECEE2E82DF270EE10E6907D460CCB3495D0BF98AA7690E4F9EC0C1E2125E04F52FFF8DC614010050B7F863FB38EC5049BEA0CA53BCE8BDF5FF02FE91A841DA5A7F0DD1271B34AD4393C45BF91988D970F1C5BD16B97A613426C1FA6EC2FD5ECE8633C007A4FF279C6DA8D1F93FDDC975F4";
+//---- len : 1653 bytes | source=1815 | payload=1653 | gain=162 (8.9%)
 const char HTTP_EXPL0[] PROGMEM = "<script>function clic(pa, el) {var r = confirm('Are you sure you want to ' + pa + ' ' + el + ' ?');if (r == true) {window.location = '/explorer?cmd=' + pa + '&file=' + el;}}</script><body><div class='container'><header><h1>File Explorer</h1></header><p class='message'>Browse and manage files in the EFS.</p><div class='section'><div class='section-title'>Files</div><div class='action-list'>";
-//---- len : 429 bytes | raw=392 | payload=392
-//---- total len : 7116 bytes | raw=6838 | payload=6838
+//---- len : 392 bytes | source=392 | payload=392 | gain=0 (0.0%)
+//---- total len : 6161 bytes | source=6838 | payload=6159 | gain=679 (9.9%)
 //---- End Generated
 
 namespace {
@@ -390,13 +393,15 @@ void FrameWeb::loadConfiguration(const char *filename, Config &config, const cha
  * Note: ConfigModeCallback is called when entering AP mode
  */
 // Start WiFiManager
-void FrameWeb::startWifiManager( /*void (*func)(WiFiManager* myWiFiManager )*/ ) {
-#ifndef DEBUG_FRAMEWEB
+void FrameWeb::startWifiManager() {
+#ifdef LOG_FRAMEWEB_ENABLED
+  wifiManager.setDebugOutput(true);
+#else
   wifiManager.setDebugOutput(false);
 #endif
   //! Warning MacAddress must be UNICAST frame that is bit 0 of first byte must be equals zero
   if ((config.MacAddress[0]&0x01)==0x01) {
-    Serial.println("[F] WARNING: Mac address is not UNICAST!");
+    FDBXERR("WARNING: Mac address (%s) is not UNICAST!", bytesToHex(config.MacAddress, 6).c_str());
   }
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
 
@@ -460,17 +465,17 @@ void FrameWeb::startOTA() {
  */
 // Show HTML Arguments and Header (use for debugging)
 void FrameWeb::showAH() {
-	String m = "[F]Nbr of args:";	m+=server.args();	m+="\n\r";
+	String m = "Nbr of args:";	m+=server.args();	m+="\n\r";
 	for(int i = 0; i < server.args(); i++) {
 		m+="Arg["+(String)i+"]=";		m+=server.argName(i)+":";	m+=server.arg(i)+"\n\r";
 	}
-	Serial.print(m);
-	String mm = "[F]Nbr of heders:";	mm+=server.headers();	mm+="\n\r";
+	FDBX(m);
+	String mm = "Nbr of headers:";	mm+=server.headers();	mm+="\n\r";
 	for(int i = 0; i < server.headers(); i++) {
-		mm+="[F]Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n\r";
+		mm+="Header["+(String)i+"]=";		mm+=server.headerName(i)+":";	mm+=server.header(i)+"\n\r";
 	}
-	Serial.print(mm);
-	Serial.print("[F]hostHeader:");Serial.println(server.hostHeader());
+	FDBX(mm);
+	FDBXMF("hostHeader: %s", server.hostHeader().c_str());
 }
 
 /**
@@ -602,12 +607,12 @@ String FrameWeb::zipString(const String& input) {
   std::unique_ptr<tdefl_compressor> comp(new (std::nothrow) tdefl_compressor());
 
   if (!outBuf || !comp) {
-    FDBXMF("zipString: allocation failed (heap pressure). freeHeap=%u\n\r", ESP.getFreeHeap());
+    FDBXERR("zipString: allocation failed (heap pressure). freeHeap=%u\n\r", ESP.getFreeHeap());
     return String();
   }
 
   if (tdefl_init(comp.get(), nullptr, nullptr, compressFlags) != TDEFL_STATUS_OKAY) {
-    FDBXLN(F("zipString: init failed."));
+    FDBXERR("zipString: init failed.");
     return String();
   }
 
@@ -619,7 +624,7 @@ String FrameWeb::zipString(const String& input) {
     TDEFL_FINISH);
 
   if (status != TDEFL_STATUS_DONE) {
-    FDBXLN("zipString: compression failed. status=" + String((int)status));
+    FDBXERR("zipString: compression failed. status=%s\n\r",String((int)status));
     return String();
   }
 
@@ -674,7 +679,7 @@ String FrameWeb::unzipString(const String& input) {
   // which overflows the loopTask default 8KB stack on ESP32-S3.
   std::unique_ptr<tinfl_decompressor> decomp(new (std::nothrow) tinfl_decompressor());
   if (!decomp) {
-    FDBXLN("unzipString: decompressor alloc failed. freeHeap=" + String(ESP.getFreeHeap()));
+    FDBXERR("unzipString: decompressor alloc failed. freeHeap=%u\n\r", ESP.getFreeHeap());
     return String();
   }
   tinfl_init(decomp.get());
@@ -813,7 +818,7 @@ void FrameWeb::handlePost() {
         server.requestAuthentication();
         return;
       }
-      Serial.printf("cmd=%s\n\r", server.arg("cmd").c_str());
+      FDBXMF("cmd=%s\n\r", server.arg("cmd").c_str());
       if (server.arg("cmd") == "save-config" ) saveConfiguration(filename, config);
       if (server.arg("cmd") == "reset-wifi" ) ResetWifi = true;
       if (server.arg("cmd") == "restart" ) RebootAsap = true;
@@ -899,7 +904,7 @@ void FrameWeb::upload_post() {
 }
 
 void FrameWeb::exploreWeb() {
-#ifdef DEBUG_FRAMEWEB
+#ifdef LOG_FRAMEWEB_ENABLED
   showAH();
 #endif
   if (!server.authenticate(config.LoginName, config.LoginPassword)) 
@@ -932,7 +937,7 @@ void FrameWeb::update() {
 void FrameWeb::update2() {
   HTTPUpload& upload = server.upload();
   if(upload.status == UPLOAD_FILE_START){
-    Serial.printf("Update: %s\n\r", upload.filename.c_str());
+    FDBXMF("Update: %s\n\r", upload.filename.c_str());
     if(!Update.begin(UPDATE_SIZE_UNKNOWN)){ //start with max available size
       Update.printError(Serial);
     }
@@ -943,7 +948,7 @@ void FrameWeb::update2() {
     }
   } else if(upload.status == UPLOAD_FILE_END){
     if(Update.end(true)){ //true to set the size to the current progress
-      Serial.printf("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
+      FDBXMF("Update Success: %u\n\rRebooting...\n\r", upload.totalSize);
     } else {
       Update.printError(Serial);
     }
@@ -1032,9 +1037,10 @@ void FrameWeb::loop() {
     esp_wifi_init(&cfg); //initiate and allocate wifi resources (does not matter if connection fails)
     delay(2000); //wait a little bit
     if(esp_wifi_restore() != ESP_OK) {
-      Serial.println("WiFi is not initialized by esp_wifi_init");
+      FDBXLN("WiFi is not initialized by esp_wifi_init");
     } else {
-      Serial.println("WiFi Configurations Cleared!");
+      /* It appears that the code provided is not valid C++ code. The text "FDBXLN" and " */
+      FDBXLN("WiFi Configurations Cleared!");
     }
     wifiManager.startConfigPortal(config.HostName, NULL);
     ESP.restart();

@@ -36,7 +36,6 @@ platformio device monitor --environment esp32dev
 
 ```cpp
 #include <Arduino.h>
-#define DEBUG_FRAMEWEB
 #include "FrameWeb.h"
 
 FrameWeb frame;
@@ -100,6 +99,13 @@ To enable them, define `LOG_FRAMEWEB_ENABLED` in `platformio.ini` build flags:
 
 ```ini
 build_flags = -D LOG_FRAMEWEB_ENABLED
+```
+
+To disable without removing the line, prefix it with a semicolon:
+
+```ini
+build_flags =  -D PIO_ESP32_DEV_BOARD
+;              -D LOG_FRAMEWEB_ENABLED
 ```
 
 Current behavior is presence-based: if `LOG_FRAMEWEB_ENABLED` is defined, logs are enabled.
@@ -250,41 +256,41 @@ Embedded pages are sourced from `src/FrameWeb.html` and injected into `src/Frame
 
 ### custom_out_zip mode
 
-FrameWeb supports two generated payload modes for `HTTP_*` constants:
+FrameWeb supports three generated payload modes for `HTTP_*` constants, controlled by `custom_out_zip` in `platformio.ini`:
 
-- `custom_out_zip = plain`: generated chunks are plain HTML strings.
-- `custom_out_zip = zip` or `zipped`: generated chunks use the FrameWeb zip format:
-  - `<raw_size>:<hex_zlib_payload>`
+| Value | CLI flag | Behaviour |
+|---|---|---|
+| `plain` (default) | _(none)_ | Plain HTML strings stored as-is |
+| `zip` / `zipped` | `-z` | All chunks compressed: `<raw_size>:<hex_zlib_payload>` |
+| `zip_if_best` / `zib` / `best` / `auto` | `-zib` | Per-chunk: keeps the **smallest** between plain and compressed |
 
-When enabled, runtime decoding is automatic through `decodeHtmlChunk()` used by built-in pages (`simpleUpload`, `simpleIndex`, `simpleFirmware`, explorer).
+When a chunk is stored in zip format, runtime decoding is automatic through `decodeHtmlChunk()` (used by built-in pages: `simpleUpload`, `simpleIndex`, `simpleFirmware`, explorer).
 
-To enable the mode for a given PlatformIO environment, set the option in `platformio.ini`:
-
-```ini
-custom_out_zip = zip
-```
-
-To disable it, set it back to plain HTML:
+Set the mode in `platformio.ini` for each environment:
 
 ```ini
-custom_out_zip = plain
+custom_out_zip = plain       ; plain HTML
+custom_out_zip = zip         ; always compress
+custom_out_zip = zip_if_best ; best size per block (recommended)
 ```
 
-`extra_script.py` pre-build behavior is automatically aligned with this option:
+`extra_script.py` pre-build logs reflect the active mode:
 
-- If `custom_out_zip` is `zip` or `zipped`, generation uses zip mode (equivalent to `-z`).
-- Otherwise, generation outputs plain HTML strings.
+```
+custom_out_zip=zip -> zip generation ON
+custom_out_zip=zip_if_best -> best-size generation ON
+```
 
-During pre-build, the script logs:
+Generated stats comment per block:
 
-- `PlatformIO env: xiao_esp32s3`
-- `PlatformIO section: [env:xiao_esp32s3]`
-- `custom_out_zip=zipped -> zip generation ON`
+```
+//---- len : <string content bytes> | source=<HTML source bytes> | payload=<stored bytes> | gain=<source-payload> (%)
+```
 
-Suggested configuration:
-
-- `custom_out_zip = plain` for environments that should generate plain HTML.
-- `custom_out_zip = zip` or `zipped` for environments that should generate zipped HTML.
+- `len`: size of the stored string content (inside quotes)
+- `source`: original UTF-8 HTML block size
+- `payload`: actual stored size (plain or `size:HEX_ZLIB`)
+- `gain`: bytes saved vs source (`source - payload`), shown when zip or zip_if_best is active
 
 Do not manually edit generated sections between:
 
@@ -303,7 +309,7 @@ Do not manually edit generated sections between:
 ## Troubleshooting
 
 - Serial issues: verify `monitor_port` and `upload_port` in `platformio.ini`.
-- Wi-Fi portal issues: enable/check `DEBUG_FRAMEWEB` serial logs.
+- Wi-Fi portal issues: enable/check `LOG_FRAMEWEB_ENABLED` serial logs.
 - Missing web pages: check SPIFFS and keep `UseToolsLocal=true`.
 - OTA issues: verify credentials and `.bin` image.
 

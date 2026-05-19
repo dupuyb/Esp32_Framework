@@ -246,17 +246,17 @@ void setup() {
     /// Toggle LED to show startup progress
     digitalWrite(EspLedBlue, !digitalRead(EspLedBlue));
 
-#ifdef DEBUG_FRAMEWEB
+    /// ===== Finalization =====
     Serial.println("Server WEB started.");
     printEspInfo();
-#endif
+
 }
 
 /**
  * @brief Arduino loop() - main execution loop
  *
  * Performs these tasks:
- *  1. Process serial commands for debugging (if DEBUG_FRAMEWEB enabled)
+ *  1. Process serial commands for debugging
  *  2. Call FrameWeb loop to handle HTTP, WebSocket, OTA
  *  3. Update heartbeat LED every 1 second
  *  4. Display date/time every 1 minute
@@ -269,7 +269,7 @@ void setup() {
  */
 // Main loop -----------------------------------------------------------------
 void loop() {
-#ifdef DEBUG_FRAMEWEB
+
     // ===== Serial Debug Commands =====
     /// Process incoming serial characters for debugging
     while (Serial.available() > 0) {
@@ -291,7 +291,7 @@ void loop() {
             cmd = ' ';
         }
     }
-#endif
+
     // ===== Main Framework Loop =====
     /// Process all web requests, WebSocket events, OTA updates
     frame.loop();

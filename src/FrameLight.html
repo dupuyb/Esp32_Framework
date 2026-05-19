@@ -8,63 +8,30 @@
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>ESP32</title>
-<style>
-  :root {
-    --primary: #4CAF50;
-    --primary-dark: #45a049;
-    --bg-light: #f5f5f5;
-    --bg-item: #f9f9f9;
-    --shadow: 0 2px 4px rgba(0,0,0,.1);
-    --radius: 8px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; background: var(--bg-light); padding: 10px; color: #333; }
-  .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
-  .section-title, header { border-bottom: 2px solid #ddd; margin-bottom: 15px; padding-bottom: 10px; }
-  header { text-align: center; border-color: var(--primary); margin-bottom: 30px; }
-  h1 { background: linear-gradient(135deg, #87CEEB, var(--primary)); color: #fff; padding: 15px; border-radius: 5px; }
-  .action-item, .form-group { 
-    display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;
-    padding: 10px; background: var(--bg-item); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 10px;
-  }
-  .button-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-  button { 
-    padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px; 
-    cursor: pointer; transition: 0.3s; 
-  }
-  button:hover { background: var(--primary-dark); }
-  .system-actions { background: #f0f8ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
-  .footnotes { font-size: 12px; color: #666; background: #fffacd; border-left: 4px solid #f0ad4e; padding: 15px; border-radius: 4px; }
-  @media (max-width: 768px) {
-    .action-item, .form-group { grid-template-columns: 1fr; }
-    .button-group { justify-content: flex-start; }
-    h1 { font-size: 1.2rem; }
-  }
-</style>
 </head>
 
 <!-- const char HTTP_BODYUP[] PROGMEM = -->
 <body>
-    <div class='container'>
+    <div align='center'>
         <header>
             <h1>ESP32 Uploader</h1>
         </header>
-        <p class='message'>Transfer a file to SPIFFS. Gzip supported.</p>
-        <div class='section'>
-            <div class='section-title'>File Upload</div>
-            <div class='action-list'>
-                <div class='action-item'>
+        <p>Transfer a file to SPIFFS. Gzip supported.</p>
+        <div>
+            <div>File Upload</div>
+            <div>
+                <div>
                     <div>- Select a file to upload to the EFS.</div>
-                    <div class='button-group'>
-                        <form method='post' enctype='multipart/form-data' style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;'>
-                            <input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm' style='min-width:200px;'>
+                    <div>
+                        <form method='post' enctype='multipart/form-data'>
+                            <input type='file' name='Choose file' accept='.gz,.html,.ico,.js,.json,.css,.png,.gif,.bmp,.jpg,.xml,.pdf,.htm'>
                             <button type='submit' name='submit'>Upload</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-        <div style='text-align:center;'>
+        <div>
             <button onclick="window.location='/';">Back</button>
         </div>
     </div>
@@ -73,42 +40,42 @@
 
 <!-- const char HTTP_BODYID[] PROGMEM = -->
 <body>
-    <div class='container'>
+    <div align='center'>
         <header>
             <h1>ESP32 Embedded Tools</h1>
         </header>
         
-        <p class='message'>Index.html file not found on the device.</p>
+        <p>Index.html file not found on the device.</p>
         
-        <div class='section'>
-            <div class='section-title'>Configuration Features</div>
+        <div>
+            <div>Configuration Features</div>
             
-            <div class='action-list'>
-                <div class='action-item'>
+            <div>
+                <div>
                     <div>- Browse and manage files in the EFS.</div>
-                    <div class='button-group'>
+                    <div>
                         <button onclick="window.location='/explorer';">Explorer</button>
                         <button onclick="window.location='/ls';">List</button>
                     </div>
                 </div>
                 
-                <div class='action-item'>
+                <div>
                     <div>- View the configuration file used at startup</div>
-                    <div class='button-group'>
+                    <div>
                         <button onclick="window.location='/config.json';">Config.json</button>
                     </div>
                 </div>
                 
-                <div class='action-item'>
+                <div>
                     <div>- Upload files to the Embedded File System</div>
-                    <div class='button-group'>
+                    <div>
                         <button onclick="window.location='/upload';">Uploader</button>
                     </div>
                 </div>
                 
-                <div class='action-item'>
+                <div>
                     <div>- Update ESP32 firmware over the air (OTA)</div>
-                    <div class='button-group'>
+                    <div>
                         <button onclick="window.location='/update';">Update</button>
                     </div>
                 </div>
@@ -116,10 +83,10 @@
         </div>
 
 <!-- const char HTTP_BODYI0[] PROGMEM = -->
-            <div class='section'>
-            <div class='section-title'>System Actions</div>
+            <div>
+            <div>System Actions</div>
             
-            <div class='system-actions'>
+            <div>
                 <ul>
                     <li>- <b>Restart</b>: Reboots the ESP32.</li>
                     <li>- <b>Save Config</b>: Saves settings to EFS. *</li>
@@ -128,10 +95,10 @@
                 </ul>
             </div>
             
-            <div class='form-group'>
+            <div>
                 <label for='cmd'>- Select a command from the list:</label>
-                <form action='post' method='post' style='display: flex; gap: 8px; align-items: center;'>
-                    <select id='cmd' name='cmd' style='flex: 1; min-width: 150px;'>
+                <form action='post' method='post'>
+                    <select id='cmd' name='cmd'>
                         <option value='none'></option>
                         <option value='restart'>Restart</option>
                         <option value='save-config'>Save Config *</option>
@@ -144,7 +111,7 @@
         </div>
 
 <!-- const char HTTP_BODYI1[] PROGMEM = -->
-        <div class='footnotes'>
+        <div>
             <p>* All parameters in config.json are affected.</p>
             <p>** Login, password, and flags reset to default. EFS reformatted.</p>
             <p>*** Device reboots in AP mode to select a new WiFi network.</p>
@@ -155,33 +122,33 @@
 
 <!-- const char HTTP_FIRM0[] PROGMEM = -->
 <body>
-    <div class='container'>
+    <div align='center'>
         <header>
             <h1>ESP32 Firmware Update</h1>
         </header>
-        <p class='message'>ESP32 OTA firmware update. Default format: .bin.</p>
-        <div class='section'>
-            <div class='section-title'>Firmware Update</div>
-            <div class='action-item'>
+        <p>ESP32 OTA firmware update. Default format: .bin.</p>
+        <div>
+            <div>Firmware Update</div>
+            <div>
                 <div>- ESP32 firmware .bin update.</div>
-                <div class='button-group'>
-                    <form method='POST' action='#' enctype='multipart/form-data' id='upload_form' style='display: flex; gap: 8px; align-items: center; flex: 1;'>
-                        <input type='file' accept='.bin' name='update' style='flex: 1; min-width: 150px;'>
+                <div>
+                    <form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>
+                        <input type='file' accept='.bin' name='update'>
                         <button type='submit'>Update</button>
                     </form>
                 </div>
             </div>
         </div>
-        <div class='section'>
-            <div class='section-title'>Progress</div>
-            <div class='action-item' style='justify-content: center;'>
-                <div id='prg' style='text-align: center; font-weight: bold; color: #4CAF50;'>progress: 0%</div>
+        <div>
+            <div>Progress</div>
+            <div>
+                <div id='prg'>progress: 0%</div>
             </div>
         </div>
-        <div class='footnotes'>
+        <div>
             <p>Warning: ESP32 restarts automatically after update.</p>
         </div>
-        <div style='text-align: center; margin-top: 20px;'>
+        <div>
             <button onclick="window.location='/';">Back</button>
         </div>
     </div>
@@ -236,20 +203,19 @@ function clic(pa, el) {
 }
 </script>
 <body>
-    <div class='container'>
+    <div align='center'>
         <header>
             <h1>File Explorer</h1>
         </header>
-        <p class='message'>Browse and manage files in the EFS.</p>
-        <div class='section'>
-            <div class='section-title'>Files</div>
-            <div class='action-list'>
+        <p>Browse and manage files in the EFS.</p>
+        <div>
+            <div>Files</div>
+            <div>
 
 <!-- const char HTTP_EXPL1[] PROGMEM = -->
-<div class='action-item'><div><a href='##F##'>##F##</a><span style='color: #999;'> (##S##)</span></div>
-    <div class='button-group'>
+<div><div><a href='##F##'>##F##</a><span> (##S##)</span></div>
+    <div>
         <button onclick="clic('download', '##F##')">Download</button>
         <button onclick="clic('remove', '##F##')">Remove</button>
     </div>
 </div>
-               

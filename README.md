@@ -254,6 +254,47 @@ Typical access:
 
 Embedded pages are sourced from `src/FrameWeb.html` and injected into `src/FrameWeb.cpp` by `extra_script.py` (pre-build via `platformio.ini`).
 
+For lighter builds, you can switch the generator input from `FrameWeb.html` to `FrameLight.html`. This keeps the same marker structure while removing styles and other non-essential markup, which can reduce flash usage by around 50% depending on the selected pages.
+
+Example:
+
+```ini
+custom_in_html =
+  src/FrameLight.html
+
+custom_out_h =
+  src/FrameWeb.cpp
+```
+
+You can also map multiple HTML files sequentially if needed.
+
+### Multi-file html -> cpp/h mapping
+
+`custom_in_html` and `custom_out_h` support one or multiple entries (PlatformIO list style, like `lib_deps`).
+
+Rules:
+
+- Both lists must contain the same number of entries.
+- Mapping is sequential: `custom_in_html[i]` -> `custom_out_h[i]`.
+- If counts differ, pre-build generation fails with an explicit error.
+
+Example:
+
+```ini
+custom_in_html =
+  src/FrameLight.html
+  src/FrameWeb.html
+
+custom_out_h =
+  src/FrameWeb.cpp
+  src/FrameOther.cpp
+```
+
+In this case, generation runs in order:
+
+1. `src/FrameLight.html` -> `src/FrameWeb.cpp`
+2. `src/FrameWeb.html` -> `src/FrameOther.cpp`
+
 ### custom_out_zip mode
 
 FrameWeb supports three generated payload modes for `HTTP_*` constants, controlled by `custom_out_zip` in `platformio.ini`:

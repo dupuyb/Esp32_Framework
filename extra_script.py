@@ -13,6 +13,8 @@ Overview
 - Replaces only the generated block delimited by:
     - //---- Start Generated
     - //---- End Generated
+- In PlatformIO mode, supports one or multiple input/output pairs from
+    custom_in_html/custom_out_h (sequential mapping: input[i] -> output[i]).
 
 Execution modes
 ---------------
@@ -37,6 +39,8 @@ Notes
 -----
 - The generated region in the C++ file is overwritten on each run.
 - Edit the HTML source file, not the generated block in the C++ file.
+- For multi-file PlatformIO generation, custom_in_html and custom_out_h must
+    contain the same number of entries.
 """
 
 from __future__ import annotations
@@ -504,41 +508,66 @@ def _resolve_zip_mode(config: configparser.ConfigParser, section: str) -> tuple[
     return False, False, "plain"
 
 
+def _get_platformio_list_option(
+    config: configparser.ConfigParser,
+    section: str,
+    key: str,
+) -> list[str]:
+    """Read a PlatformIO-style list option (one or multiple lines)."""
+    raw_value = config.get(section, key, fallback="")
+    items: list[str] = []
+    for raw_line in raw_value.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith((";", "#")):
+            continue
+        items.append(line)
+    return items
+
+
 def run_platformio_pre_script() -> int:
     """Run automatic pre-build generation using values from platformio.ini.
 
-    Uses the active environment section, resolves custom_in_html/custom_out_h,
-    then updates the generated block in-place in the target C++ file.
+    Uses the active environment section and resolves custom_in_html/custom_out_h.
+    Each input/output pair is processed sequentially:
+    custom_in_html[i] -> custom_out_h[i].
     """
     config, _ = _load_platformio_config()
     section = _detect_env_section(config)
     pio_env = section.removeprefix("env:")
 
-    inputfile = config.get(section, "custom_in_html", fallback="").strip()
-    outputfile = config.get(section, "custom_out_h", fallback="").strip()
-    if not inputfile or not outputfile:
+    inputfiles = _get_platformio_list_option(config, section, "custom_in_html")
+    outputfiles = _get_platformio_list_option(config, section, "custom_out_h")
+    if not inputfiles or not outputfiles:
         raise ValueError(
             f"custom_in_html/custom_out_h missing in [{section}] of platformio.ini"
+        )
+    if len(inputfiles) != len(outputfiles):
+        raise ValueError(
+            f"custom_in_html/custom_out_h count mismatch in [{section}] "
+            f"({len(inputfiles)} vs {len(outputfiles)})"
         )
 
     print(f"PlatformIO env: {pio_env}")
     print(f"PlatformIO section: [{section}]")
-    print(f"---> EXTRACT HTML FILE :{inputfile}--------------------")
-    tg, ln = findPattern(inputfile)
-    print("Key list   :", tg)
-    print("Number Key :", len(tg))
-    print("Max Key len:", ln)
+    print(f"Input/output pairs: {len(inputfiles)}")
 
-    output_path = _resolve_path(outputfile)
     zip_output, zip_if_best, zip_mode = _resolve_zip_mode(config, section)
     if zip_if_best:
         print("custom_out_zip=zip_if_best -> best-size generation ON")
     else:
         print(f"custom_out_zip={zip_mode} -> zip generation {'ON' if zip_output else 'OFF'}")
 
-    code = conpressHtml(inputfile, zip_output=zip_output, zip_if_best=zip_if_best)
-    replace(outputfile, code)
-    print(f"---> END OF HTML FILE :{outputfile}--------------------")
+    for idx, (inputfile, outputfile) in enumerate(zip(inputfiles, outputfiles), start=1):
+        print(f"---> [{idx}/{len(inputfiles)}] EXTRACT HTML FILE :{inputfile}--------------------")
+        tg, ln = findPattern(inputfile)
+        print("Key list   :", tg)
+        print("Number Key :", len(tg))
+        print("Max Key len:", ln)
+
+        code = conpressHtml(inputfile, zip_output=zip_output, zip_if_best=zip_if_best)
+        replace(outputfile, code)
+        print(f"---> [{idx}/{len(inputfiles)}] END OF HTML FILE :{outputfile}--------------------")
+
     return 0
 
 

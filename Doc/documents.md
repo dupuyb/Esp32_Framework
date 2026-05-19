@@ -16,6 +16,12 @@ Current definitions:
 - `HTTP_FIRM0`: firmware update page body
 - `HTTP_EXPL0`: explorer shell (runtime appends file rows)
 
+Lightweight alternative:
+
+- `src/FrameLight.html` keeps the same marker layout as `src/FrameWeb.html`
+- it removes styles and other non-essential markup
+- it can reduce flash usage by about 50% depending on the selected pages
+
 ## Runtime Routes
 
 - `/` default tools page (when SPIFFS `index.html` is missing)
@@ -30,6 +36,24 @@ Current definitions:
 
 - `plain`: plain HTML payload
 - `zip` or `zipped`: FrameWeb zipped payload (`<raw_size>:<hex_zlib_payload>`)
+- `zip_if_best` / `zib` / `best` / `auto`: per block, keeps smallest payload between plain and zipped
+
+`platformio.ini` also supports multiple html->cpp/h generations in one pass:
+
+- `custom_in_html` can list multiple HTML files
+- `custom_out_h` can list multiple target cpp/h files
+- both lists must have the same number of entries
+- mapping is sequential: input[i] -> output[i]
+
+Example:
+
+```ini
+custom_in_html =
+	src/FrameLight.html
+
+custom_out_h =
+	src/FrameWeb.cpp
+```
 
 ## Doc Folder Files
 

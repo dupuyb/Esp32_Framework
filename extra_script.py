@@ -547,6 +547,10 @@ def run_platformio_pre_script() -> int:
             f"({len(inputfiles)} vs {len(outputfiles)})"
         )
 
+    _B = "\033[94m"; _R = "\033[0m"
+    print(_B + "=" * 72 + _R)
+    print(_B + "=== FrameWeb extra_script.py START (PlatformIO pre-build generation) ===" + _R)
+    print(_B + "-" * 72 + _R)
     print(f"PlatformIO env: {pio_env}")
     print(f"PlatformIO section: [{section}]")
     print(f"Input/output pairs: {len(inputfiles)}")
@@ -568,6 +572,9 @@ def run_platformio_pre_script() -> int:
         replace(outputfile, code)
         print(f"---> [{idx}/{len(inputfiles)}] END OF HTML FILE :{outputfile}--------------------")
 
+    print(_B + "-" * 72 + _R)
+    print(_B + "=== FrameWeb extra_script.py END (PlatformIO pre-build generation) =====" + _R)
+    print(_B + "=" * 72 + _R)
     return 0
 
 

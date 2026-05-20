@@ -67,6 +67,16 @@ try:
 except Exception:
     env = None
 
+try:
+    from SCons.Script import COMMAND_LINE_TARGETS
+except Exception:
+    COMMAND_LINE_TARGETS = []
+
+try:
+    from SCons.Script import GetOption
+except Exception:
+    GetOption = None
+
 
 PROJECT_ROOT = Path("platformio.ini").resolve().parent
 
@@ -582,6 +592,41 @@ def _get_platformio_list_option(
     return items
 
 
+def _is_clean_invocation() -> bool:
+    """Return True when script is invoked for a clean target.
+
+    PlatformIO executes extra scripts for clean operations too.
+    We skip generation in that case to avoid touching generated files.
+    """
+    if GetOption is not None:
+        try:
+            if bool(GetOption("clean")):
+                return True
+        except Exception:
+            pass
+
+    targets: list[str] = []
+
+    if env is not None:
+        try:
+            scons_targets = env.GetOption("targets")
+            if scons_targets:
+                targets.extend(str(t).strip().lower() for t in scons_targets)
+        except Exception:
+            pass
+
+    targets.extend(str(t).strip().lower() for t in COMMAND_LINE_TARGETS)
+    targets.extend(arg.strip().lower() for arg in sys.argv[1:])
+    return any(
+        target == "clean"
+        or target.endswith("clean")
+        or target.startswith("clean")
+        or "target clean" in target
+        or "--target" in target and "clean" in target
+        for target in targets
+    )
+
+
 def run_platformio_pre_script() -> int:
     """Run automatic pre-build generation using values from platformio.ini.
 
@@ -589,6 +634,11 @@ def run_platformio_pre_script() -> int:
     Each input/output pair is processed sequentially:
     custom_in_html[i] -> custom_out_h[i].
     """
+    if _is_clean_invocation():
+        _B = "\033[94m"; _R = "\033[0m"
+        print(_B + "[INFO] extra_script.py skipped: clean target detected" + _R)
+        return 0
+
     config, _ = _load_platformio_config()
     section = _detect_env_section(config)
     pio_env = section.removeprefix("env:")

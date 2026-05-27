@@ -32,6 +32,9 @@
 #include <FS.h>
 #include <SPIFFS.h>
 
+// Arduino-ESP32 v3 exposes File as fs::File; import alias for compatibility.
+using fs::File;
+
 // JSON - ArduinoJson library (by Benoit Blanchon)
 #include <ArduinoJson.h>
 

@@ -1018,10 +1018,21 @@ void FrameWeb::setup( /*void (*func)(WiFiManager* myWiFiManager),*/ const char* 
 }
 
 void FrameWeb::loop() {
-  
-  server.handleClient();         // constantly check for events
-  webSocket.loop();              // constantly check for websocket events
-  ArduinoOTA.handle();           // listen for OTA events
+  try {
+    server.handleClient();         // constantly check for events
+  } catch (const std::exception& e) {
+    FDBXERR("Web server handleClient error: %s", e.what());
+  }
+  try {
+    webSocket.loop();              // constantly check for websocket events
+  } catch (const std::exception& e) {
+    FDBXERR("WebSocket loop error: %s", e.what());
+  }
+  try { 
+    ArduinoOTA.handle();           // listen for OTA events
+  } catch (const std::exception& e) {
+    FDBXERR("OTA handle error: %s", e.what());
+  }
   if (ResetWifi) {
     wifiManager.resetSettings(); // BUG the stored ssid no cleared !!
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); //load the flash-saved configs

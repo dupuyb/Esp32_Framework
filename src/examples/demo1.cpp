@@ -184,8 +184,23 @@ void printEspInfo() {
     case CHIP_ESP32C3:
         model = "ESP32-C3";
         break;
+#ifdef CHIP_ESP32C2
+    case CHIP_ESP32C2:
+        model = "ESP32-C2";
+        break;
+#endif
+#ifdef CHIP_ESP32C6
+    case CHIP_ESP32C6:
+        model = "ESP32-C6";
+        break;
+#endif
+#ifdef CHIP_ESP32H2
+    case CHIP_ESP32H2:
+        model = "ESP32-H2";
+        break;
+#endif
     default:
-        model = "Unknown";
+        model = "ESP32-Unknown";
     }
 
     const char *wifi_supported = (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "yes" : "no";

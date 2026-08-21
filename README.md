@@ -32,6 +32,21 @@ platformio run --environment esp32dev --target upload
 platformio device monitor --environment esp32dev
 ```
 
+### Available Environments
+
+| Environment | Board | Description |
+|---|---|---|
+| `esp32dev` | ESP32 Dev Board | Standard ESP32 development board |
+| `xiao_esp32s3` | Seeed XIAO ESP32S3 | Seeed XIAO S3 board |
+| `seeed_xiao_esp32c6` | Seeed XIAO ESP32C6 | Default environment for the ESP32-C6 board |
+
+Build or upload the ESP32-C6 target with:
+
+```bash
+platformio run --environment seeed_xiao_esp32c6
+platformio run --environment seeed_xiao_esp32c6 --target upload
+```
+
 ## Minimal Integration
 
 ```cpp
@@ -119,7 +134,7 @@ The numeric value is currently not used for log filtering.
 - Serial monitor shows unreadable characters:
   - Verify monitor speed matches firmware speed (default: `115200`).
 - Logs still absent after editing `platformio.ini`:
-  - Rebuild the correct environment explicitly (`-e esp32dev` or `-e xiao_esp32s3`).
+  - Rebuild the correct environment explicitly (`-e esp32dev`, `-e xiao_esp32s3`, or `-e seeed_xiao_esp32c6`).
   - Clean and rebuild if needed.
 - Build succeeds but upload target shows no logs:
   - Check `monitor_port`/`upload_port` for the selected board.
@@ -299,11 +314,11 @@ In this case, generation runs in order:
 
 FrameWeb supports three generated payload modes for `HTTP_*` constants, controlled by `custom_out_zip` in `platformio.ini`:
 
-| Value | CLI flag | Behaviour |
-|---|---|---|
-| `plain` (default) | _(none)_ | Plain HTML strings stored as-is |
-| `zip` / `zipped` | `-z` | All chunks compressed: `<raw_size>:<hex_zlib_payload>` |
-| `zip_if_best` / `zib` / `best` / `auto` | `-zib` | Per-chunk: keeps the **smallest** between plain and compressed |
+| Value             | CLI flag  |          Behaviour                      |
+|-------------------|-----------|-----------------------------------------|
+| `plain` (default) | _(none)_  | Plain HTML strings stored as-is |
+| `zip` / `zipped`  |   `-z`    | All chunks compressed: `<raw_size>:<hex_zlib_payload>` |
+| `zip_if_best` /  `zib` / `best` / `auto` | `-zib`   | Per-chunk: keeps the **smallest** between plain and compressed |
 
 When a chunk is stored in zip format, runtime decoding is automatic through `decodeHtmlChunk()` (used by built-in pages: `simpleUpload`, `simpleIndex`, `simpleFirmware`, explorer).
 

@@ -55,6 +55,10 @@ using fs::File;
 // mDNS for network discovery
 #include "ESPmDNS.h"
 
+// Modif 
+#include "esp_chip_info.h"
+#include "esp_mac.h"
+
 // ============ Debug macros ============
 /** 
  * Macros for debug output with "[F]" prefix (FrameWeb)

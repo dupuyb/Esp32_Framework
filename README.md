@@ -10,6 +10,8 @@ FrameWeb is an ESP32 web framework for PlatformIO (Arduino) with:
 - SPIFFS file hosting
 - HTTP Basic authentication for sensitive routes
 
+![FrameWeb diagram](frame_diagram.png)
+
 Reference example: `src/examples/demo1.cpp`.
 
 ## Quick Start

@@ -501,7 +501,7 @@ public:
    *  - Bit 4 (1<<4): startWebSocket
    *  - Bit 5 (1<<5): startWebServer
    *  - Bit 6 (1<<6): startMDNS
-   *  - initSetupState = 0 au départ, chaque service positionne son bit lors de l'init.
+   *  - initSetupState = 0 initially; each service sets its bit during initialization.
    */
   uint8_t initSetupState = 0;
   

@@ -23,9 +23,9 @@
 #include <miniz.h>  
 #include "lwip/pbuf.h"
 #include "lwip/netif.h"
-// Correctif temporaire pour le bug lwIP d'Espressif sur ESP32-C6
+// Temporary workaround for Espressif's lwIP bug on ESP32-C6
 extern "C" int lwip_hook_ip6_input(struct pbuf *p, struct netif *inp) {
-    return 0; // 0 indique à lwIP de continuer le traitement normal
+    return 0; // 0 tells lwIP to continue normal processing
 }
 #else
 #include <rom/miniz.h>
@@ -430,7 +430,7 @@ void FrameWeb::startWifiManager() {
   }
   esp_base_mac_addr_set(config.MacAddress); // Wifi_STA=mac  wifi_AP=mac+1  BT=mac+2
 
-  //Forcer à effacer les donnees WIFI dans l'eprom , permet de changer d'AP à chaque demmarrage ou effacer les infos d'une AP dans la memoire ( a valider , lors du premier lancement  )
+  // Force clearing Wi-Fi data from EEPROM to allow switching APs at each startup or clearing an AP's stored information (to be validated on first launch)
   if (config.ResetWifi)  {
     //!\ Logging and Passwd stay in Flash
     wifiManager.resetSettings();
